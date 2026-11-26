@@ -1,0 +1,2489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEFR Assessment Instrument Designer</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF & AutoTable for crisp, multi-page vector PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; color: #111827 !important; }
+      #documentPreviewCard { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+      .page-break-inside-avoid { break-inside: avoid; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.25s ease-out forwards; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="no-print sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-teal-500 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 truncate">CEFR Assessment Designer</h1>
+          <p class="text-xs text-slate-500 hidden sm:block truncate">Pre-A1 to C2 Rubrics, Checklists, Scales & Performance Tasks</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Engine Status / Optional API Settings Button -->
+        <button id="btnOpenAiSettings" type="button" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer" title="Configure optional Gemini API Key">
+          <span id="engineStatusDot" class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span id="engineStatusLabel" class="hidden md:inline">Built-in Engine</span>
+          <span class="md:hidden">AI Key</span>
+        </button>
+
+        <button id="btnLoadSample" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-xl transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span class="hidden sm:inline">Load Sample</span>
+          <span class="sm:hidden">Sample</span>
+        </button>
+
+        <button id="btnOpenLibrary" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          <span class="hidden sm:inline">Saved</span>
+          <span id="savedCountBadge" class="px-1.5 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 rounded-full">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- LEFT COLUMN: Guided 6-Step Designer / Brief Builder -->
+    <section class="no-print lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Assessment Brief</h2>
+          <p class="text-xs text-slate-500" id="stepSubtitle">Step 1 of 6 • Instrument & Level</p>
+        </div>
+        <div class="inline-flex rounded-xl bg-slate-200/70 p-1 text-xs font-medium">
+          <button id="modeWizardBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer">Guided</button>
+          <button id="modeAllBtn" type="button" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">All Fields</button>
+        </div>
+      </div>
+
+      <div id="wizardProgressContainer" class="px-5 pt-4">
+        <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div id="wizardProgressBar" class="h-full bg-brand-600 rounded-full transition-all duration-300" style="width: 16.6%;"></div>
+        </div>
+      </div>
+
+      <form id="assessmentForm" class="p-4 sm:p-5 space-y-5">
+
+        <!-- STEP 1: Instrument Type & CEFR Level -->
+        <div class="wizard-step space-y-4" data-step="1">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">1. Instrument Type</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="instrumentTypeGrid"></div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">CEFR Level</label>
+            <div class="grid grid-cols-5 gap-1.5" id="cefrLevelGrid"></div>
+            <p id="cefrLevelHint" class="mt-2 text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-xl p-2.5">
+              B1 (Threshold): Can deal with most situations likely to arise whilst travelling and produce simple connected text.
+            </p>
+          </div>
+        </div>
+
+        <!-- STEP 2: Topic, Unit & Grammar/Vocab Focus -->
+        <div class="wizard-step space-y-4 hidden" data-step="2">
+          <div>
+            <label for="topicInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">2. Topic or Unit / Theme</label>
+            <input id="topicInput" type="text" placeholder="e.g., Sustainable Travel & Eco-Tourism" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition" />
+            <div class="mt-2 flex flex-wrap gap-1.5" id="topicSuggestions"></div>
+          </div>
+
+          <div>
+            <label for="grammarVocabInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Grammar & Vocabulary Focus <span class="text-slate-400 font-normal normal-case">(optional)</span></label>
+            <textarea id="grammarVocabInput" rows="2" placeholder="e.g., First conditional, modal verbs of advice (should/ought to), environment & travel collocations" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition"></textarea>
+          </div>
+        </div>
+
+        <!-- STEP 3: Class Size & Age Range -->
+        <div class="wizard-step space-y-4 hidden" data-step="3">
+          <div>
+            <label for="groupSizeInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">3. Number of Students in Group</label>
+            <div class="flex items-center gap-3">
+              <input id="groupSizeInput" type="number" min="1" max="150" value="24" class="w-28 px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <span class="text-xs text-slate-500">Helps tailor timing, grouping, and administration notes.</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="ageRangeInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">4. Student Age Range</label>
+            <input id="ageRangeInput" type="text" value="14–16 years old (High School)" placeholder="e.g., 10–12 years old, Adult learners (18+)" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              <button type="button" class="age-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 transition cursor-pointer" data-age="7–9 years old (Primary)">7–9 Primary</button>
+              <button type="button" class="age-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 transition cursor-pointer" data-age="11–13 years old (Middle School)">11–13 Middle</button>
+              <button type="button" class="age-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 transition cursor-pointer" data-age="14–17 years old (High School)">14–17 High School</button>
+              <button type="button" class="age-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 transition cursor-pointer" data-age="18+ years old (University / Adults)">18+ Adults</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Skills & Assessment Purpose -->
+        <div class="wizard-step space-y-4 hidden" data-step="4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Target Language Skills</label>
+            <div class="flex flex-wrap gap-2" id="skillsChipContainer"></div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Assessment Purpose</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" class="purpose-btn px-3 py-2.5 rounded-xl border text-left transition cursor-pointer border-brand-500 bg-brand-50 text-brand-900" data-purpose="Formative">
+                <div class="text-xs font-bold">Formative</div>
+                <div class="text-[11px] text-slate-500">Ongoing feedback & growth</div>
+              </button>
+              <button type="button" class="purpose-btn px-3 py-2.5 rounded-xl border text-left transition cursor-pointer border-slate-200 bg-white text-slate-700 hover:bg-slate-50" data-purpose="Summative">
+                <div class="text-xs font-bold">Summative</div>
+                <div class="text-[11px] text-slate-500">End-of-unit grading</div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Activity / Task Type -->
+        <div class="wizard-step space-y-4 hidden" data-step="5">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">5. Preferred Activity / Product Type</label>
+            <div class="flex flex-wrap gap-1.5 mb-2.5" id="taskTypeChips"></div>
+            <input id="customTaskInput" type="text" placeholder="Or describe a custom task (e.g., 3-minute podcast episode)" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+        </div>
+
+        <!-- STEP 6: Points / Weighting & Companion Options -->
+        <div class="wizard-step space-y-4 hidden" data-step="6">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="totalPointsInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">6. Total Points</label>
+              <input id="totalPointsInput" type="number" min="4" max="1000" value="20" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label for="weightingInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Grade Weighting</label>
+              <input id="weightingInput" type="text" value="15% of term grade" placeholder="e.g., 20% of unit" class="w-full px-3.5 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+          </div>
+
+          <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70 transition">
+            <input id="includeSelfAssess" type="checkbox" checked class="mt-0.5 w-4 h-4 rounded text-brand-600 focus:ring-brand-500" />
+            <div>
+              <div class="text-xs font-semibold text-slate-800">Include Student Self / Peer-Assessment Checklist</div>
+              <div class="text-[11px] text-slate-500">Adds CEFR "Can-Do" reflection items for learner autonomy.</div>
+            </div>
+          </label>
+
+          <div id="briefSummaryBox" class="p-3.5 rounded-xl bg-brand-50/70 border border-brand-200/70 space-y-1.5 text-xs">
+            <div class="font-bold text-brand-900 flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Brief Summary
+            </div>
+            <div id="briefSummaryContent" class="text-slate-700 leading-relaxed"></div>
+          </div>
+        </div>
+
+        <!-- Navigation & Generate Buttons -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button id="btnPrevStep" type="button" class="hidden px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+            ← Back
+          </button>
+
+          <button id="btnNextStep" type="button" class="ml-auto px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition cursor-pointer">
+            Next Step →
+          </button>
+
+          <button id="btnGenerate" type="submit" class="hidden ml-auto w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 rounded-xl shadow-md transition cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+            <span>Generate Instrument</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RIGHT COLUMN: Document Output, Interactive Grader & Export -->
+    <section class="lg:col-span-7 xl:col-span-8 space-y-4">
+
+      <!-- Empty State -->
+      <div id="emptyState" class="no-print bg-white rounded-2xl border border-dashed border-slate-300 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[460px]">
+        <div class="w-16 h-16 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">Ready to Design Your CEFR Assessment</h3>
+        <p class="text-sm text-slate-500 max-w-md mb-6 leading-relaxed">
+          Complete the 6-step assessment brief on the left to generate a classroom-ready rubric, checklist, rating scale, or performance task aligned with CEFR descriptors. Works 100% online or offline!
+        </p>
+        <div class="flex flex-wrap justify-center gap-2 text-xs text-slate-600 mb-6">
+          <span class="px-3 py-1.5 rounded-full bg-slate-100">✓ General & Specific Objectives</span>
+          <span class="px-3 py-1.5 rounded-full bg-slate-100">✓ CEFR Can-Do Statements</span>
+          <span class="px-3 py-1.5 rounded-full bg-slate-100">✓ Interactive Live Grader</span>
+          <span class="px-3 py-1.5 rounded-full bg-slate-100">✓ PDF, Docs & Sheets Export</span>
+        </div>
+        <button id="btnEmptySample" type="button" class="px-4 py-2.5 text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-xl transition cursor-pointer">
+          Preview Sample B1 Assessment →
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden no-print bg-white rounded-2xl border border-slate-200 p-10 text-center flex flex-col items-center justify-center min-h-[460px]">
+        <div class="w-12 h-12 rounded-full border-4 border-brand-100 border-t-brand-600 animate-spin mb-4"></div>
+        <h3 class="text-base font-bold text-slate-900 mb-1">Crafting Your CEFR Instrument...</h3>
+        <p id="loadingSubtext" class="text-xs text-slate-500 max-w-sm">Aligning descriptors, scaffolding, grammar/vocabulary targets, and scoring weights.</p>
+      </div>
+
+      <!-- Generated Workspace -->
+      <div id="resultWorkspace" class="hidden space-y-4 animate-fade-in">
+
+        <!-- Action Toolbar -->
+        <div class="no-print bg-white rounded-2xl border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+            <button id="tabDocView" type="button" class="px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer">Document View</button>
+            <button id="tabGraderView" type="button" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer flex items-center gap-1.5">
+              <span>Interactive Grader</span>
+              <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button id="btnSaveLocal" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition cursor-pointer" title="Save to browser library">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              Save
+            </button>
+            <button id="btnCopyDocs" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition cursor-pointer" title="Copy formatted text for Google Docs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              Copy
+            </button>
+            <button id="btnExportWord" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-xl transition cursor-pointer" title="Download .doc for Google Docs or Word">
+              .DOC
+            </button>
+            <button id="btnExportCsv" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition cursor-pointer" title="Download Rubric/Checklist as .csv for Google Sheets">
+              .CSV (Sheets)
+            </button>
+            <button id="btnDownloadPdf" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-slate-800 hover:bg-slate-900 rounded-xl shadow-sm transition cursor-pointer" title="Generate and download a formatted PDF file">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span id="pdfBtnLabel">Download PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Live Score Banner -->
+        <div id="graderBanner" class="hidden no-print bg-gradient-to-r from-brand-900 to-teal-900 text-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center font-bold text-lg" id="graderPercentBadge">0%</div>
+            <div>
+              <div class="text-xs uppercase tracking-wider text-brand-200 font-semibold">Interactive Test Grader</div>
+              <div class="text-sm font-medium">Click rubric cells or checklist items below to score a student live.</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-xl font-extrabold" id="graderScoreDisplay">0 / 20 pts</div>
+              <div class="text-xs text-teal-200" id="graderFeedbackTag">Select criteria to calculate</div>
+            </div>
+            <button id="btnResetGrader" type="button" class="px-3 py-1.5 text-xs font-semibold bg-white/15 hover:bg-white/25 rounded-xl transition cursor-pointer">Reset</button>
+          </div>
+        </div>
+
+        <!-- Main Printable Document Card -->
+        <article id="documentPreviewCard" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6"></article>
+
+        <!-- Quick Refine Bar -->
+        <div class="no-print bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5">
+          <label for="refineInput" class="block text-xs font-bold text-slate-700 flex items-center justify-between gap-2">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Quick Refine Instrument
+            </span>
+            <span class="text-[11px] font-normal text-slate-400">Try: "adjust to 100 points", "add pronunciation criterion", "convert to checklist", "simplify for younger learners"</span>
+          </label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="refineInput" type="text" placeholder="e.g., Adjust to 100 points, add a pronunciation criterion, or simplify instructions..." class="flex-1 px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white" />
+            <button id="btnRefine" type="button" class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition cursor-pointer shrink-0">
+              Apply Edit
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Saved Library Modal -->
+  <div id="libraryModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[80vh] flex flex-col shadow-xl overflow-hidden animate-fade-in">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Saved Assessments</h3>
+          <p class="text-xs text-slate-500">Stored locally in your browser for quick reuse.</p>
+        </div>
+        <button id="btnCloseLibrary" type="button" class="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="libraryList" class="p-5 overflow-y-auto space-y-3 flex-1"></div>
+    </div>
+  </div>
+
+  <!-- Optional AI Settings Modal -->
+  <div id="aiSettingsModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-xl overflow-hidden animate-fade-in">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Generation Engine Settings</h3>
+          <p class="text-xs text-slate-500">Works without any key, or add your own Gemini API key.</p>
+        </div>
+        <button id="btnCloseAiSettings" type="button" class="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
+          <strong>Built-in CEFR Engine (Default):</strong> Works 100% on GitHub Pages with no setup or API key required. Generates tailored Pre-A1 to C2 rubrics, checklists, and scales instantaneously.
+        </div>
+
+        <div class="space-y-2">
+          <label for="apiKeyInput" class="block text-xs font-bold text-slate-700">Optional: Personal Gemini API Key</label>
+          <input id="apiKeyInput" type="password" placeholder="AIzaSy..." class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white" />
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            Stored <strong>only in your browser's localStorage</strong>—never uploaded to GitHub. Get a free key from Google AI Studio if you want live AI custom wording.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2">
+          <button id="btnClearApiKey" type="button" class="px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer">Remove Key</button>
+          <button id="btnSaveApiKey" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition cursor-pointer">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="no-print fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // CONFIGURATION & CEFR CURRICULUM KNOWLEDGE BASE (Pre-A1 to C2)
+    // =========================================================================
+    const API_KEY_STORAGE = "cefr_designer_user_gemini_key_v1";
+    const STORAGE_KEY = "cefr_assessment_designer_saved_v1";
+    const GEMINI_MODEL = "gemini-2.5-flash";
+
+    const INSTRUMENT_TYPES = [
+      { id: "Auto-Recommend", label: "Auto-Recommend", desc: "Best fit for task" },
+      { id: "Analytic Rubric", label: "Analytic Rubric", desc: "Criteria × Bands" },
+      { id: "Holistic Rubric", label: "Holistic Rubric", desc: "Overall proficiency" },
+      { id: "Observation Checklist", label: "Observation Checklist", desc: "Speaking / live tasks" },
+      { id: "Can-Do Progress Checklist", label: "Can-Do Checklist", desc: "CEFR descriptors" },
+      { id: "Rating Scale", label: "Rating Scale", desc: "Numeric / frequency" },
+      { id: "Performance Task + Criteria", label: "Task + Criteria", desc: "Full prompt & guide" },
+      { id: "Self / Peer-Assessment Grid", label: "Self / Peer Grid", desc: "Learner reflection" }
+    ];
+
+    const CEFR_LEVELS = [
+      { code: "Pre-A1", label: "Foundation", desc: "Pre-A1 (Foundation): Recognizes very basic words, simple greetings, and concrete objects with heavy visual support." },
+      { code: "A1", label: "Breakthrough", desc: "A1 (Breakthrough): Understands and uses familiar everyday expressions and very basic phrases for immediate needs." },
+      { code: "A2", label: "Waystage", desc: "A2 (Waystage): Communicates in simple, routine tasks requiring direct exchange of information on familiar matters." },
+      { code: "A2+", label: "Strong Waystage", desc: "A2+ (Strong Waystage): Participates actively in short conversations on familiar topics with emerging grammatical range." },
+      { code: "B1", label: "Threshold", desc: "B1 (Threshold): Deals with most everyday situations and produces simple connected text on topics of personal interest." },
+      { code: "B1+", label: "Strong Threshold", desc: "B1+ (Strong Threshold): Explains viewpoints, narrates events with reasonable fluency, and handles less routine contexts." },
+      { code: "B2", label: "Vantage", desc: "B2 (Vantage): Interacts with fluency and spontaneity; produces clear, detailed text on a wide range of subjects." },
+      { code: "B2+", label: "Strong Vantage", desc: "B2+ (Strong Vantage): Constructs well-structured arguments, adapts register effectively, and self-corrects reliably." },
+      { code: "C1", label: "Effective Operational", desc: "C1 (Effective Operational Proficiency): Uses language flexibly and effectively for social, academic, and professional purposes." },
+      { code: "C2", label: "Mastery", desc: "C2 (Mastery): Expresses subtle shades of meaning precisely, effortlessly summarizing complex information from diverse sources." }
+    ];
+
+    // Authentic British Council / EAQUALS Core Inventory & CEFR Descriptors per level
+    const CEFR_BANK = {
+      "Pre-A1": {
+        grammar: ["Verb 'to be' (I am / It is)", "Basic imperatives (point, look, say)", "Simple nouns & numbers (1–20)", "This is / These are"],
+        vocab: ["greetings", "colors", "classroom objects", "family words", "basic verbs (like, see, have)", "yes / no / please"],
+        canDo: {
+          Speaking: "Can name familiar objects and use short memorized phrases with visual support (CEFR Pre-A1).",
+          Writing: "Can copy familiar words and write simple labels or personal details like their name (CEFR Pre-A1).",
+          Reading: "Can recognize familiar everyday words accompanied by pictures or icons (CEFR Pre-A1).",
+          Listening: "Can recognize basic spoken words and simple classroom instructions spoken very slowly (CEFR Pre-A1).",
+          Interaction: "Can respond to simple greetings and very basic personal questions with prompting (CEFR Pre-A1)."
+        },
+        scaffolding: [
+          "Provide illustrated flashcards, picture dictionaries, and word-wall cards during the entire activity.",
+          "Model every step physically (TPR) and allow pointing, matching, or single-word oral responses."
+        ]
+      },
+      "A1": {
+        grammar: ["Present simple (affirmative, negative, questions)", "Can / can't for ability", "There is / There are", "Basic prepositions of place & time (in, on, at)"],
+        vocab: ["everyday routines", "time expressions", "basic adjectives (big, good, happy)", "connectors (and, but, because)", "familiar places"],
+        canDo: {
+          Speaking: "Can produce simple, mainly isolated phrases about people, places, and daily routines (CEFR A1).",
+          Writing: "Can write short, simple sentences and notes on familiar personal topics (CEFR A1).",
+          Reading: "Can understand very short, simple texts one phrase at a time, picking up familiar names and words (CEFR A1).",
+          Listening: "Can follow speech that is very slow and carefully articulated with long pauses (CEFR A1).",
+          Interaction: "Can ask and answer simple questions on very familiar topics if the partner speaks slowly (CEFR A1)."
+        },
+        scaffolding: [
+          "Display a simple sentence-starter frame on the board (e.g., 'I like...', 'There is a...', 'Every day I...').",
+          "Allow brief pair rehearsal and a visual word bank of 8–10 key topic words."
+        ]
+      },
+      "A2": {
+        grammar: ["Past simple (regular & common irregular verbs)", "Present continuous vs. present simple", "Going to for future plans", "Comparatives and superlatives"],
+        vocab: ["sequencing words (first, then, after that)", "everyday topic phrases", "frequency adverbs (always, sometimes, never)", "expressions of opinion (I think, I prefer)"],
+        canDo: {
+          Speaking: "Can give a short, rehearsed basic presentation or description on a familiar everyday topic (CEFR A2).",
+          Writing: "Can write a series of simple phrases and sentences linked with simple connectors like 'and', 'but', and 'because' (CEFR A2).",
+          Reading: "Can locate specific, predictable information in simple everyday texts such as brochures, menus, or short articles (CEFR A2).",
+          Listening: "Can catch the main point in short, clear, simple messages and announcements (CEFR A2).",
+          Interaction: "Can communicate in simple and routine tasks requiring a direct exchange of information on familiar topics (CEFR A2)."
+        },
+        scaffolding: [
+          "Provide a graphic organizer with 3 clearly labeled boxes (Beginning / Middle / End) for planning.",
+          "Pre-teach 6–8 high-frequency collocations and model one complete example together before students begin."
+        ]
+      },
+      "A2+": {
+        grammar: ["Present perfect for experiences (ever/never)", "Past continuous for background events", "Modals of obligation & advice (have to, should)", "Basic relative clauses (who, which, where)"],
+        vocab: ["cause-and-effect linkers (so, because of)", "descriptive adjectives", "practical functional phrases", "time markers (while, when, already, yet)"],
+        canDo: {
+          Speaking: "Can describe plans, arrangements, habits, and past activities clearly in a short connected sequence (CEFR A2+).",
+          Writing: "Can write short connected paragraphs describing events, experiences, and personal impressions (CEFR A2+).",
+          Reading: "Can understand the main idea and specific details in straightforward factual texts on familiar subjects (CEFR A2+).",
+          Listening: "Can identify the topic and key details of a discussion conducted clearly in standard speech (CEFR A2+).",
+          Interaction: "Can enter unprepared into short conversations on familiar topics and ask simple follow-up questions (CEFR A2+)."
+        },
+        scaffolding: [
+          "Offer a structured checklist of required connectors and target tenses so students can self-monitor while drafting.",
+          "Include a 5-minute peer check before final submission or delivery."
+        ]
+      },
+      "B1": {
+        grammar: ["First & second conditionals", "Modals of advice, deduction & obligation (should, ought to, must, might)", "Present perfect vs. past simple", "Passive voice (present & past simple)"],
+        vocab: ["discourse markers (firstly, however, in addition, therefore)", "topic-specific collocations", "phrases for justifying opinions", "paraphrasing strategies"],
+        canDo: {
+          Speaking: "Can give a prepared straightforward presentation on a familiar topic clearly enough to be followed without difficulty (CEFR B1).",
+          Writing: "Can write straightforward connected text on topics of personal interest, linking shorter elements into a linear sequence (CEFR B1).",
+          Reading: "Can read straightforward factual texts on subjects related to their interests with a satisfactory level of comprehension (CEFR B1).",
+          Listening: "Can understand the main points of clear standard speech on familiar matters encountered at school, work, or leisure (CEFR B1).",
+          Interaction: "Can briefly give reasons and explanations for opinions, plans, and actions, and respond to simple follow-up questions (CEFR B1)."
+        },
+        scaffolding: [
+          "Provide a discourse-marker bank (e.g., 'On the one hand...', 'As a result...', 'In my view...') to support cohesion.",
+          "Use keyword-only cue cards or an outline template rather than full scripts to encourage natural B1 fluency."
+        ]
+      },
+      "B1+": {
+        grammar: ["Reported speech (statements & questions)", "Used to / would for past habits", "Defining & non-defining relative clauses", "Modals of probability in the present"],
+        vocab: ["contrast & concession linkers (although, despite, whereas)", "phrasal verbs in context", "evaluating pros and cons", "intermediate academic collocations"],
+        canDo: {
+          Speaking: "Can explain a viewpoint on a topical issue giving the advantages and disadvantages of various options (CEFR B1+).",
+          Writing: "Can write detailed, coherent texts passing on information and giving reasons in support of or against a point of view (CEFR B1+).",
+          Reading: "Can scan longer texts to locate desired information and gather details from different parts of a text (CEFR B1+).",
+          Listening: "Can follow the main points and supporting examples of an extended discussion or talk on a familiar topic (CEFR B1+).",
+          Interaction: "Can sustain a conversation or debate on a familiar topic, summarizing others' views and clarifying meaning (CEFR B1+)."
+        },
+        scaffolding: [
+          "Provide a pro/con argument organizer so students balance claims with concrete examples.",
+          "Review 1 sample exemplar together and have students score it briefly to calibrate expectations."
+        ]
+      },
+      "B2": {
+        grammar: ["Third & mixed conditionals", "Passive structures across tenses", "Modals of deduction in the past (must have / might have)", "Participle clauses & cohesive devices"],
+        vocab: ["hedging language (tends to, arguably, appears to)", "academic & formal register", "idiomatic expressions used accurately", "precise domain terminology"],
+        canDo: {
+          Speaking: "Can give a clear, systematically developed presentation, highlighting significant points and relevant supporting detail (CEFR B2).",
+          Writing: "Can write clear, detailed essays or reports developing an argument systematically with appropriate highlighting of significant points (CEFR B2).",
+          Reading: "Can read with a large degree of independence, adapting style and speed to different texts and identifying writer attitudes (CEFR B2).",
+          Listening: "Can understand extended speech and lectures and follow even complex lines of argument on reasonably familiar topics (CEFR B2).",
+          Interaction: "Can interact with a degree of fluency and spontaneity that makes regular interaction comfortable, defending viewpoints persuasively (CEFR B2)."
+        },
+        scaffolding: [
+          "Share a short register & hedging guide to help learners move from informal opinions to evidence-based claims.",
+          "Encourage peer critique focusing on argument logic, counter-arguments, and lexical precision."
+        ]
+      },
+      "B2+": {
+        grammar: ["Inversion for emphasis (Not only did..., Rarely have...)", "Cleft sentences (What matters most is...)", "Subjunctive / formal structures", "Complex nominalization"],
+        vocab: ["nuanced evaluative adjectives", "advanced cohesive transitions (consequently, notwithstanding)", "register shifting", "precision collocations"],
+        canDo: {
+          Speaking: "Can depart spontaneously from a prepared text to follow up interesting points raised by the audience with fluency (CEFR B2+).",
+          Writing: "Can synthesize information and arguments from multiple sources into a cohesive, persuasive structured text (CEFR B2+).",
+          Reading: "Can critically evaluate implicit viewpoints, tone, and rhetorical strategies across complex contemporary texts (CEFR B2+).",
+          Listening: "Can follow complex interactions, debates, and abstract arguments even when views are implied rather than stated directly (CEFR B2+).",
+          Interaction: "Can negotiate, challenge assumptions tactfully, and self-correct slips naturally during spontaneous exchange (CEFR B2+)."
+        },
+        scaffolding: [
+          "Ask students to annotate one model text for cohesive devices and register shifts prior to drafting.",
+          "Build in a brief self-editing pass targeting sentence variety and precision of vocabulary."
+        ]
+      },
+      "C1": {
+        grammar: ["Advanced inversion & ellipsis", "Distancing & reporting structures (It is widely contended that...)", "Complex embedded & participle clauses", "Nuanced modality for stance and diplomacy"],
+        vocab: ["idiomatic & academic precision", "rhetorical signposting", "metaphorical & figurative expressions", "domain-specific terminology"],
+        canDo: {
+          Speaking: "Can give a clear, well-structured presentation on a complex subject, expanding and supporting points of view at length (CEFR C1).",
+          Writing: "Can write clear, well-structured expositions of complex subjects, underlining salient issues and rounding off with an appropriate conclusion (CEFR C1).",
+          Reading: "Can understand in detail lengthy, complex texts, whether or not they relate to their own area of specialty (CEFR C1).",
+          Listening: "Can follow extended speech even when it is not clearly structured and when relationships are only implied (CEFR C1).",
+          Interaction: "Can express ideas fluently and spontaneously without obvious searching for expressions, adapting register flexibly (CEFR C1)."
+        },
+        scaffolding: [
+          "Provide source synthesis prompts requiring learners to integrate at least two contrasting perspectives.",
+          "Use self-assessment around rhetorical impact, nuance, and audience adaptation."
+        ]
+      },
+      "C2": {
+        grammar: ["Masterful control of complex syntactic structures", "Stylistic inversion, fronting & emphatic devices", "Seamless cohesion & reference", "Subtle tense/aspect interplay for shade of meaning"],
+        vocab: ["fine shades of connotation", "effortless idiomatic & colloquial control", "authoritative academic/professional register", "rhetorical understatement & irony"],
+        canDo: {
+          Speaking: "Can present a complex topic confidently and articulately to an audience unfamiliar with it, handling difficult questioning effortlessly (CEFR C2).",
+          Writing: "Can produce clear, smoothly flowing, complex reports, articles, or essays with an effective logical structure that helps the reader notice key points (CEFR C2).",
+          Reading: "Can understand and interpret critically virtually all forms of the written language including abstract, structurally complex texts (CEFR C2).",
+          Listening: "Can understand with ease virtually any kind of spoken language delivered at fast native speed, recognizing subtle implicit attitudes (CEFR C2).",
+          Interaction: "Can convey finer shades of meaning precisely and backtrack around any difficulty so smoothly that the interlocutor is hardly aware of it (CEFR C2)."
+        },
+        scaffolding: [
+          "Focus pre-task calibration on genre conventions, subtle pragmatic register, and critical synthesis.",
+          "Include peer editorial review modeled on academic or professional publication standards."
+        ]
+      }
+    };
+
+    const TARGET_SKILLS = ["Speaking", "Writing", "Reading", "Listening", "Interaction", "Grammar & Vocab"];
+
+    const TASK_TYPES = [
+      "Oral Presentation",
+      "Written Essay",
+      "Role-Play / Dialogue",
+      "Structured Interview",
+      "Report / Monograph",
+      "Listening + Follow-up",
+      "Group Project",
+      "Diagnostic / Unit Quiz"
+    ];
+
+    const TOPIC_SUGGESTIONS_BY_BAND = {
+      low: ["Daily Routines & Free Time", "My Neighborhood & Directions", "Food & Ordering at a Café", "Family & Friends"],
+      mid: ["Sustainable Travel & Eco-Tourism", "Technology in Daily Life", "Healthy Lifestyles & Habits", "Memorable Past Experiences"],
+      high: ["Ethics of Artificial Intelligence", "Global Urbanization & Housing", "Media Literacy & Misinformation", "Future of Remote Work"]
+    };
+
+    // =========================================================================
+    // APPLICATION STATE
+    // =========================================================================
+    const state = {
+      mode: "wizard",
+      currentStep: 1,
+      totalSteps: 6,
+      selectedInstrument: "Analytic Rubric",
+      selectedLevel: "B1",
+      selectedSkills: ["Speaking", "Grammar & Vocab"],
+      selectedPurpose: "Formative",
+      selectedTask: "Oral Presentation",
+      currentAssessment: null,
+      viewMode: "document",
+      graderSelections: {},
+      savedAssessments: []
+    };
+
+    // =========================================================================
+    // SAMPLE INSTRUMENT (B1 ORAL PRESENTATION)
+    // =========================================================================
+    const SAMPLE_ASSESSMENT = {
+      title: "Eco-Friendly Travel Pitch: B1 Oral Presentation Rubric",
+      cefrLevel: "B1",
+      assessmentType: "Formative",
+      instrumentType: "Analytic Rubric",
+      skills: ["Speaking", "Interaction", "Grammar & Vocab"],
+      totalPoints: 20,
+      weighting: "15% of term grade",
+      estimatedTime: "45–60 minutes (2–3 min per student/pair)",
+      targetAudience: "24 students • 14–16 years old (High School)",
+      generalObjective: "Students will plan and deliver a structured 2–3 minute oral presentation proposing an eco-friendly travel itinerary, using B1-level connectors, modal verbs of advice, and topic-specific vocabulary.",
+      specificObjectives: [
+        "Organize ideas logically with a clear introduction, 2–3 eco-travel recommendations, and a brief conclusion.",
+        "Use first conditional sentences and modals of advice (should, ought to, had better) accurately to justify sustainable choices.",
+        "Maintain intelligible pronunciation and natural pacing while responding to 1–2 follow-up questions from peers."
+      ],
+      canDoStatements: [
+        "Can give a prepared straightforward presentation on a familiar topic within their field which is clear enough to be followed without difficulty most of the time (CEFR B1).",
+        "Can briefly give reasons and explanations for opinions, plans, and actions (CEFR B1).",
+        "Can take follow-up questions, though may have to ask for repetition if the speech was rapid (CEFR B1)."
+      ],
+      grammarAndVocabFocus: {
+        grammar: ["First conditional (If we travel by train, we will reduce...)", "Modals of advice & obligation (should, ought to, must)", "Sequencing linkers (firstly, moreover, in addition, finally)"],
+        vocabulary: ["carbon footprint", "eco-lodge", "local community", "public transit", "renewable", "reusable", "off the beaten track", "conservation"]
+      },
+      teacherInstructions: [
+        "Introduce the rubric 1 class period before presentations so learners understand how each criterion is weighted.",
+        "Provide a 10-minute rehearsal window in pairs where students time each other and check their visual aid (max 3 slides or 1 poster).",
+        "Score students live using the 4-band analytic rubric while noting 1 strength and 1 actionable growth tip for formative feedback."
+      ],
+      studentInstructions: [
+        "Choose a destination and design a 3-day eco-friendly travel plan for a group of teenagers.",
+        "Prepare a 2–3 minute spoken pitch explaining where to go, how to travel responsibly, and why it protects the environment.",
+        "Include at least 3 eco-tourism vocabulary terms and 2 first-conditional or modal-advice sentences.",
+        "Use brief cue cards (keywords only—do not read full paragraphs) and be ready to answer one classmate's question."
+      ],
+      scaffoldingTips: [
+        "Provide a sentence-frame bank on the board (e.g., 'One sustainable alternative is...', 'If tourists choose..., it will help...').",
+        "Allow lower-confidence B1 learners to present in pairs (splitting intro/body/conclusion evenly) before solo presentations later in the term."
+      ],
+      instrumentFormat: "rubric",
+      rubricBands: ["Exemplary (4)", "Proficient (3)", "Developing (2)", "Beginning (1)"],
+      criteria: [
+        {
+          name: "Task Completion & Organization",
+          weightPoints: 5,
+          skillTag: "Speaking",
+          descriptors: [
+            "Fully addresses the eco-travel prompt with a clear intro, detailed 3-day plan, and strong conclusion; uses varied B1 linkers smoothly.",
+            "Addresses all parts of the prompt with clear sequence; uses basic linkers (first, next, finally) appropriately.",
+            "Addresses most of the prompt but lacks detail or clear transitions between sections; relies heavily on notes.",
+            "Incomplete response or off-topic; minimal structure makes the itinerary difficult to follow."
+          ]
+        },
+        {
+          name: "Grammatical Accuracy & Range",
+          weightPoints: 5,
+          skillTag: "Grammar",
+          descriptors: [
+            "Accurately uses first conditionals and modals of advice with very few slips; errors never impede meaning.",
+            "Uses target B1 structures with good control; occasional errors occur in complex clauses without blocking comprehension.",
+            "Attempts target grammar but frequent errors in tense or modal forms sometimes require listener effort.",
+            "Relies almost exclusively on memorized simple clauses; frequent errors obscure intended meaning."
+          ]
+        },
+        {
+          name: "Vocabulary Range & Topic Control",
+          weightPoints: 5,
+          skillTag: "Vocabulary",
+          descriptors: [
+            "Confidently integrates 4+ eco-tourism terms and natural collocations accurately to express nuanced ideas.",
+            "Uses at least 3 relevant topic terms correctly; occasionally paraphrases effectively when searching for a word.",
+            "Uses basic travel vocabulary with limited eco-tourism terms; some repetition or L1 interference.",
+            "Very limited vocabulary; relies on isolated words or gestures to convey basic travel ideas."
+          ]
+        },
+        {
+          name: "Fluency, Pronunciation & Interaction",
+          weightPoints: 5,
+          skillTag: "Interaction",
+          descriptors: [
+            "Speaks at a steady, natural pace with clear pronunciation and intonation; answers peer follow-up question confidently.",
+            "Maintains steady flow with brief pauses to plan; pronunciation is clearly intelligible; answers follow-up question adequately.",
+            "Noticeable hesitations or reading from script; occasional mispronunciations strain comprehension; needs prompting for Q&A.",
+            "Long pauses interrupt communication; reads directly from paper; unable to respond to simple follow-up questions."
+          ]
+        }
+      ],
+      scoringGuidance: "Total possible score: 20 points (4 criteria × 5 points max). For each criterion, award full weight (5 pts) for Exemplary, 3.75–4 pts for Proficient, 2.5–3 pts for Developing, and 1–1.5 pts for Beginning. Formative benchmark: 14/20 (70%) demonstrates solid B1 threshold readiness.",
+      peerOrSelfAssessment: [
+        "I can clearly introduce my eco-friendly destination and explain 3 sustainable actions.",
+        "I used at least two sentences with 'should / ought to' or 'if + present, will + verb'.",
+        "I spoke from short keyword notes instead of reading full sentences.",
+        "I listened to a classmate's question and gave a clear, relevant answer."
+      ],
+      adaptationNotes: "For larger groups (24+ students), run simultaneous small-group 'travel expo' stations (4 groups of 6) so every student presents within a single 50-minute lesson while the teacher rotates to assess."
+    };
+
+    // =========================================================================
+    // INITIALIZATION & UI RENDERING
+    // =========================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      loadSavedFromStorage();
+      updateEngineStatusUI();
+      renderInstrumentTypeGrid();
+      renderCefrLevelGrid();
+      renderSkillsChips();
+      renderTaskTypeChips();
+      renderTopicSuggestions();
+      bindEvents();
+      updateWizardUI();
+    });
+
+    function getUserApiKey() {
+      try {
+        return (localStorage.getItem(API_KEY_STORAGE) || "").trim();
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function updateEngineStatusUI() {
+      const hasKey = Boolean(getUserApiKey());
+      const dot = document.getElementById("engineStatusDot");
+      const label = document.getElementById("engineStatusLabel");
+      if (hasKey) {
+        dot.className = "w-2 h-2 rounded-full bg-brand-500";
+        label.textContent = "Gemini AI Active";
+      } else {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        label.textContent = "Built-in Engine";
+      }
+    }
+
+    function renderInstrumentTypeGrid() {
+      const container = document.getElementById("instrumentTypeGrid");
+      container.innerHTML = INSTRUMENT_TYPES.map(item => {
+        const active = state.selectedInstrument === item.id;
+        return `
+          <button type="button" data-instrument="${item.id}" class="instrument-btn text-left p-2.5 rounded-xl border transition cursor-pointer ${
+            active
+              ? "border-brand-500 bg-brand-50 text-brand-900 ring-1 ring-brand-500"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }">
+            <div class="text-xs font-bold leading-tight">${item.label}</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">${item.desc}</div>
+          </button>
+        `;
+      }).join("");
+
+      container.querySelectorAll(".instrument-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedInstrument = btn.dataset.instrument;
+          renderInstrumentTypeGrid();
+          updateBriefSummary();
+        });
+      });
+    }
+
+    function renderCefrLevelGrid() {
+      const container = document.getElementById("cefrLevelGrid");
+      container.innerHTML = CEFR_LEVELS.map(lvl => {
+        const active = state.selectedLevel === lvl.code;
+        return `
+          <button type="button" data-level="${lvl.code}" class="cefr-btn py-2 px-1 text-xs font-bold rounded-xl border transition cursor-pointer ${
+            active
+              ? "border-brand-600 bg-brand-600 text-white shadow-sm"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }">
+            ${lvl.code}
+          </button>
+        `;
+      }).join("");
+
+      const currentObj = CEFR_LEVELS.find(l => l.code === state.selectedLevel);
+      if (currentObj) {
+        document.getElementById("cefrLevelHint").textContent = currentObj.desc;
+      }
+
+      container.querySelectorAll(".cefr-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedLevel = btn.dataset.level;
+          renderCefrLevelGrid();
+          renderTopicSuggestions();
+          updateBriefSummary();
+        });
+      });
+    }
+
+    function renderTopicSuggestions() {
+      const container = document.getElementById("topicSuggestions");
+      let band = "mid";
+      if (["Pre-A1", "A1", "A2"].includes(state.selectedLevel)) band = "low";
+      else if (["B2+", "C1", "C2"].includes(state.selectedLevel)) band = "high";
+
+      container.innerHTML = TOPIC_SUGGESTIONS_BY_BAND[band].map(topic => `
+        <button type="button" class="topic-chip px-2.5 py-1 text-xs rounded-lg bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-600 transition cursor-pointer" data-topic="${topic}">
+          + ${topic}
+        </button>
+      `).join("");
+
+      container.querySelectorAll(".topic-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.getElementById("topicInput").value = chip.dataset.topic;
+          updateBriefSummary();
+        });
+      });
+    }
+
+    function renderSkillsChips() {
+      const container = document.getElementById("skillsChipContainer");
+      container.innerHTML = TARGET_SKILLS.map(skill => {
+        const active = state.selectedSkills.includes(skill);
+        return `
+          <button type="button" data-skill="${skill}" class="skill-chip px-3 py-1.5 text-xs font-semibold rounded-xl border transition cursor-pointer ${
+            active
+              ? "border-teal-600 bg-teal-50 text-teal-800"
+              : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+          }">
+            ${active ? "✓ " : ""}${skill}
+          </button>
+        `;
+      }).join("");
+
+      container.querySelectorAll(".skill-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          const s = chip.dataset.skill;
+          if (state.selectedSkills.includes(s)) {
+            if (state.selectedSkills.length > 1) {
+              state.selectedSkills = state.selectedSkills.filter(x => x !== s);
+            }
+          } else {
+            state.selectedSkills.push(s);
+          }
+          renderSkillsChips();
+          updateBriefSummary();
+        });
+      });
+    }
+
+    function renderTaskTypeChips() {
+      const container = document.getElementById("taskTypeChips");
+      container.innerHTML = TASK_TYPES.map(task => {
+        const active = state.selectedTask === task;
+        return `
+          <button type="button" data-task="${task}" class="task-chip px-3 py-1.5 text-xs font-medium rounded-xl border transition cursor-pointer ${
+            active
+              ? "border-brand-600 bg-brand-600 text-white"
+              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+          }">
+            ${task}
+          </button>
+        `;
+      }).join("");
+
+      container.querySelectorAll(".task-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          state.selectedTask = chip.dataset.task;
+          document.getElementById("customTaskInput").value = "";
+          renderTaskTypeChips();
+          updateBriefSummary();
+        });
+      });
+    }
+
+    // =========================================================================
+    // WIZARD NAVIGATION & EVENT BINDING
+    // =========================================================================
+    function bindEvents() {
+      document.getElementById("modeWizardBtn").addEventListener("click", () => {
+        state.mode = "wizard";
+        updateWizardUI();
+      });
+      document.getElementById("modeAllBtn").addEventListener("click", () => {
+        state.mode = "all";
+        updateWizardUI();
+      });
+
+      document.getElementById("btnPrevStep").addEventListener("click", () => {
+        if (state.currentStep > 1) {
+          state.currentStep--;
+          updateWizardUI();
+        }
+      });
+      document.getElementById("btnNextStep").addEventListener("click", () => {
+        if (state.currentStep < state.totalSteps) {
+          state.currentStep++;
+          updateWizardUI();
+        }
+      });
+
+      document.querySelectorAll(".age-chip").forEach(chip => {
+        chip.addEventListener("click", () => {
+          document.getElementById("ageRangeInput").value = chip.dataset.age;
+          updateBriefSummary();
+        });
+      });
+
+      document.querySelectorAll(".purpose-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.selectedPurpose = btn.dataset.purpose;
+          document.querySelectorAll(".purpose-btn").forEach(b => {
+            const isSel = b.dataset.purpose === state.selectedPurpose;
+            b.className = `purpose-btn px-3 py-2.5 rounded-xl border text-left transition cursor-pointer ${
+              isSel ? "border-brand-500 bg-brand-50 text-brand-900" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+            }`;
+          });
+          updateBriefSummary();
+        });
+      });
+
+      ["topicInput", "grammarVocabInput", "groupSizeInput", "ageRangeInput", "customTaskInput", "totalPointsInput", "weightingInput"].forEach(id => {
+        document.getElementById(id).addEventListener("input", updateBriefSummary);
+      });
+
+      document.getElementById("assessmentForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await generateAssessment();
+      });
+
+      document.getElementById("btnLoadSample").addEventListener("click", loadSampleInstrument);
+      document.getElementById("btnEmptySample").addEventListener("click", loadSampleInstrument);
+
+      document.getElementById("tabDocView").addEventListener("click", () => {
+        state.viewMode = "document";
+        updateViewModeTabs();
+        renderAssessmentDocument();
+      });
+      document.getElementById("tabGraderView").addEventListener("click", () => {
+        state.viewMode = "grader";
+        updateViewModeTabs();
+        renderAssessmentDocument();
+      });
+      document.getElementById("btnResetGrader").addEventListener("click", () => {
+        state.graderSelections = {};
+        renderAssessmentDocument();
+        updateGraderScore();
+      });
+
+      document.getElementById("btnSaveLocal").addEventListener("click", saveCurrentAssessment);
+      document.getElementById("btnCopyDocs").addEventListener("click", copyInstrumentForDocs);
+      document.getElementById("btnExportWord").addEventListener("click", exportToWordDoc);
+      document.getElementById("btnExportCsv").addEventListener("click", exportToCsvSheets);
+      document.getElementById("btnDownloadPdf").addEventListener("click", exportToPdf);
+
+      document.getElementById("btnRefine").addEventListener("click", refineAssessment);
+      document.getElementById("refineInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          refineAssessment();
+        }
+      });
+
+      // Library modal
+      document.getElementById("btnOpenLibrary").addEventListener("click", openLibraryModal);
+      document.getElementById("btnCloseLibrary").addEventListener("click", closeLibraryModal);
+      document.getElementById("libraryModal").addEventListener("click", (e) => {
+        if (e.target.id === "libraryModal") closeLibraryModal();
+      });
+
+      // AI Settings modal
+      document.getElementById("btnOpenAiSettings").addEventListener("click", () => {
+        document.getElementById("apiKeyInput").value = getUserApiKey();
+        document.getElementById("aiSettingsModal").classList.remove("hidden");
+      });
+      document.getElementById("btnCloseAiSettings").addEventListener("click", () => {
+        document.getElementById("aiSettingsModal").classList.add("hidden");
+      });
+      document.getElementById("aiSettingsModal").addEventListener("click", (e) => {
+        if (e.target.id === "aiSettingsModal") document.getElementById("aiSettingsModal").classList.add("hidden");
+      });
+      document.getElementById("btnSaveApiKey").addEventListener("click", () => {
+        const key = document.getElementById("apiKeyInput").value.trim();
+        try {
+          if (key) localStorage.setItem(API_KEY_STORAGE, key);
+          else localStorage.removeItem(API_KEY_STORAGE);
+        } catch (e) {}
+        updateEngineStatusUI();
+        document.getElementById("aiSettingsModal").classList.add("hidden");
+        showToast(key ? "Gemini API Key saved locally in your browser." : "Switched to Built-in CEFR Engine.", "success");
+      });
+      document.getElementById("btnClearApiKey").addEventListener("click", () => {
+        document.getElementById("apiKeyInput").value = "";
+        try { localStorage.removeItem(API_KEY_STORAGE); } catch (e) {}
+        updateEngineStatusUI();
+        document.getElementById("aiSettingsModal").classList.add("hidden");
+        showToast("API key removed. Using Built-in CEFR Engine.", "info");
+      });
+    }
+
+    function updateWizardUI() {
+      const steps = document.querySelectorAll(".wizard-step");
+      const btnPrev = document.getElementById("btnPrevStep");
+      const btnNext = document.getElementById("btnNextStep");
+      const btnGen = document.getElementById("btnGenerate");
+      const progressContainer = document.getElementById("wizardProgressContainer");
+      const modeWizardBtn = document.getElementById("modeWizardBtn");
+      const modeAllBtn = document.getElementById("modeAllBtn");
+      const subtitle = document.getElementById("stepSubtitle");
+
+      const stepTitles = [
+        "",
+        "Step 1 of 6 • Instrument & Level",
+        "Step 2 of 6 • Topic & Language Focus",
+        "Step 3 of 6 • Group Size & Age Range",
+        "Step 4 of 6 • Skills & Purpose",
+        "Step 5 of 6 • Activity / Task Type",
+        "Step 6 of 6 • Scoring & Confirmation"
+      ];
+
+      if (state.mode === "wizard") {
+        modeWizardBtn.className = "px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer";
+        modeAllBtn.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer";
+        progressContainer.classList.remove("hidden");
+        subtitle.textContent = stepTitles[state.currentStep];
+        document.getElementById("wizardProgressBar").style.width = `${(state.currentStep / state.totalSteps) * 100}%`;
+
+        steps.forEach(el => {
+          const s = parseInt(el.dataset.step, 10);
+          el.classList.toggle("hidden", s !== state.currentStep);
+        });
+
+        btnPrev.classList.toggle("hidden", state.currentStep === 1);
+        btnNext.classList.toggle("hidden", state.currentStep === state.totalSteps);
+        btnGen.classList.toggle("hidden", state.currentStep !== state.totalSteps);
+      } else {
+        modeAllBtn.className = "px-2.5 py-1 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer";
+        modeWizardBtn.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer";
+        progressContainer.classList.add("hidden");
+        subtitle.textContent = "All 6 Brief Fields Visible";
+
+        steps.forEach(el => el.classList.remove("hidden"));
+        btnPrev.classList.add("hidden");
+        btnNext.classList.add("hidden");
+        btnGen.classList.remove("hidden");
+      }
+
+      updateBriefSummary();
+    }
+
+    function getBriefData() {
+      const customTask = document.getElementById("customTaskInput").value.trim();
+      return {
+        instrumentType: state.selectedInstrument,
+        cefrLevel: state.selectedLevel,
+        topic: document.getElementById("topicInput").value.trim() || "Everyday Communication & Culture",
+        grammarVocab: document.getElementById("grammarVocabInput").value.trim(),
+        groupSize: parseInt(document.getElementById("groupSizeInput").value, 10) || 24,
+        ageRange: document.getElementById("ageRangeInput").value.trim() || "14–16 years old",
+        skills: [...state.selectedSkills],
+        purpose: state.selectedPurpose,
+        taskType: customTask || state.selectedTask,
+        totalPoints: Math.max(4, parseInt(document.getElementById("totalPointsInput").value, 10) || 20),
+        weighting: document.getElementById("weightingInput").value.trim() || "15% of term grade",
+        includeSelfAssess: document.getElementById("includeSelfAssess").checked
+      };
+    }
+
+    function updateBriefSummary() {
+      const b = getBriefData();
+      document.getElementById("briefSummaryContent").innerHTML = `
+        <strong>${b.cefrLevel} ${b.instrumentType}</strong> (${b.purpose}) for <strong>${b.taskType}</strong> on <em>"${escapeHtml(b.topic)}"</em>.<br/>
+        Target: ${b.groupSize} students (${escapeHtml(b.ageRange)}) • Skills: ${b.skills.join(", ")} • Total: <strong>${b.totalPoints} pts</strong> (${escapeHtml(b.weighting)}).
+      `;
+    }
+
+    // =========================================================================
+    // BUILT-IN CEFR ASSESSMENT ENGINE (100% Static / GitHub Pages Ready!)
+    // =========================================================================
+    function distributePoints(totalPoints, count) {
+      const base = Math.floor((totalPoints / count) * 2) / 2; // clean 0.5 increments
+      const weights = Array(count).fill(base);
+      let diff = Math.round((totalPoints - base * count) * 100) / 100;
+      let idx = 0;
+      while (diff > 0.001 && idx < count * 4) {
+        const add = diff >= 1 ? 1 : diff;
+        weights[idx % count] = Math.round((weights[idx % count] + add) * 100) / 100;
+        diff = Math.round((diff - add) * 100) / 100;
+        idx++;
+      }
+      return weights;
+    }
+
+    function buildLocalAssessment(brief) {
+      const bank = CEFR_BANK[brief.cefrLevel] || CEFR_BANK["B1"];
+      const lvlObj = CEFR_LEVELS.find(l => l.code === brief.cefrLevel) || CEFR_LEVELS[4];
+
+      // Resolve Auto-Recommend
+      let resolvedType = brief.instrumentType;
+      if (resolvedType === "Auto-Recommend") {
+        const lowerTask = brief.taskType.toLowerCase();
+        if (lowerTask.includes("role-play") || lowerTask.includes("interview")) resolvedType = "Observation Checklist";
+        else if (lowerTask.includes("quiz")) resolvedType = "Can-Do Progress Checklist";
+        else resolvedType = "Analytic Rubric";
+      }
+
+      // Determine format
+      let instrumentFormat = "rubric";
+      if (resolvedType.includes("Checklist") || resolvedType.includes("Self / Peer")) {
+        instrumentFormat = "checklist";
+      } else if (resolvedType === "Rating Scale") {
+        instrumentFormat = "rating_scale";
+      }
+
+      // Parse user grammar/vocab input if provided
+      let grammarList = [...bank.grammar];
+      let vocabList = [...bank.vocab];
+      if (brief.grammarVocab) {
+        const parts = brief.grammarVocab.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+        if (parts.length) {
+          grammarList = [parts.slice(0, Math.ceil(parts.length / 2)).join(", "), ...bank.grammar.slice(0, 2)];
+          vocabList = [...parts, ...bank.vocab.slice(0, 4)];
+        }
+      }
+
+      // Build Can-Do statements based on chosen skills
+      const canDoStatements = [];
+      brief.skills.forEach(sk => {
+        if (bank.canDo[sk]) canDoStatements.push(bank.canDo[sk]);
+      });
+      if (canDoStatements.length < 2) {
+        canDoStatements.push(bank.canDo.Speaking, bank.canDo.Interaction);
+      }
+      canDoStatements.push(`Can apply CEFR ${brief.cefrLevel} grammar and topic vocabulary accurately when engaging with "${brief.topic}" (CEFR ${brief.cefrLevel}).`);
+
+      // Build Timing & Administration tailored to group size & age
+      const isLargeGroup = brief.groupSize >= 20;
+      const isYoung = /([5-9]|10|11|primary)/i.test(brief.ageRange);
+      const isOral = brief.skills.includes("Speaking") || brief.skills.includes("Interaction") || /oral|present|role-play|interview|podcast/i.test(brief.taskType);
+
+      const estimatedTime = isOral
+        ? (isLargeGroup ? "50–60 minutes (station rotation / pair groups)" : "30–45 minutes (2–3 min per learner)")
+        : "40–50 minutes (including 10-min planning & review)";
+
+      const teacherInstructions = [
+        `Share the ${resolvedType.toLowerCase()} with students before starting the ${brief.taskType.toLowerCase()} so success criteria for CEFR ${brief.cefrLevel} are transparent.`,
+        `Activate prior knowledge on "${brief.topic}" with a 5-minute warm-up highlighting key vocabulary (${vocabList.slice(0, 4).join(", ")}).`,
+        brief.purpose === "Formative"
+          ? `Observe students during the task and record 1 clear strength plus 1 actionable CEFR ${brief.cefrLevel} growth step for each learner.`
+          : `Administer under consistent summative conditions and calibrate scoring using the band descriptors below to ensure reliability.`
+      ];
+
+      const studentInstructions = [
+        `Review the topic "${brief.topic}" and plan your ${brief.taskType.toLowerCase()} carefully before starting.`,
+        `Make sure you demonstrate ${brief.skills.join(" and ")} clearly at the CEFR ${brief.cefrLevel} level.`,
+        `Include at least 2 target grammar structures (${grammarList[0]}) and 3–4 key topic terms in your work.`,
+        isYoung
+          ? `Use the word bank and pictures if you need help, and check your checklist before finishing!`
+          : `Review your work against the assessment criteria and complete the self-reflection checklist before submitting.`
+      ];
+
+      // Build Criteria & Bands
+      let rubricBands = ["Exemplary (4)", "Proficient (3)", "Developing (2)", "Beginning (1)"];
+      if (instrumentFormat === "rating_scale") {
+        rubricBands = ["Always / Mastered (4)", "Usually / Strong (3)", "Sometimes / Emerging (2)", "Rarely / Needs Support (1)"];
+      } else if (instrumentFormat === "checklist") {
+        rubricBands = ["Achieved / Yes", "Not Yet / Needs Practice"];
+      }
+
+      const criteriaPool = buildCriteriaForBrief(brief, resolvedType, instrumentFormat, grammarList, vocabList);
+      const weights = distributePoints(brief.totalPoints, criteriaPool.length);
+      const criteria = criteriaPool.map((c, idx) => ({
+        ...c,
+        weightPoints: weights[idx]
+      }));
+
+      const benchmarkPts = Math.round(brief.totalPoints * 0.7 * 10) / 10;
+      const scoringGuidance = instrumentFormat === "checklist"
+        ? `Total possible score: ${brief.totalPoints} points across ${criteria.length} observable indicators. Award full criterion points when the indicator is demonstrated consistently at CEFR ${brief.cefrLevel} standard. Passing / proficiency benchmark: ${benchmarkPts}/${brief.totalPoints} (70%).`
+        : `Total possible score: ${brief.totalPoints} points across ${criteria.length} weighted criteria. Band scoring ratios: Band 4 = 100%, Band 3 = 75%, Band 2 = 50%, Band 1 = 25% of each criterion's point weight. ${brief.purpose} benchmark: ${benchmarkPts}/${brief.totalPoints} (70%) signals solid CEFR ${brief.cefrLevel} (${lvlObj.label}) attainment.`;
+
+      const peerOrSelfAssessment = brief.includeSelfAssess
+        ? [
+            `I clearly addressed the topic "${brief.topic}" in my ${brief.taskType.toLowerCase()}.`,
+            `I used CEFR ${brief.cefrLevel} grammar structures (${grammarList[0]}) accurately.`,
+            `I integrated relevant vocabulary (${vocabList.slice(0, 3).join(", ")}) to express my ideas.`,
+            `I checked my organization, clarity, and overall accuracy before finishing.`
+          ]
+        : [
+            `I completed all required parts of the "${brief.topic}" ${brief.taskType.toLowerCase()}.`,
+            `I identified one area I want to improve next time.`
+          ];
+
+      const adaptationNotes = isLargeGroup
+        ? `With ${brief.groupSize} students (${brief.ageRange}), organize learners into small groups of 4–5 or rotating stations so every student completes the ${brief.taskType.toLowerCase()} within one class period while you circulate with the instrument.`
+        : `With a group of ${brief.groupSize} students (${brief.ageRange}), you can provide brief 1-on-1 oral feedback immediately after scoring and allow a 5-minute revision round for formative growth.`;
+
+      return {
+        title: `${brief.topic}: CEFR ${brief.cefrLevel} ${brief.taskType} (${resolvedType})`,
+        cefrLevel: brief.cefrLevel,
+        assessmentType: brief.purpose,
+        instrumentType: resolvedType,
+        skills: brief.skills,
+        totalPoints: brief.totalPoints,
+        weighting: brief.weighting,
+        estimatedTime,
+        targetAudience: `${brief.groupSize} students • ${brief.ageRange}`,
+        generalObjective: `Students will complete a CEFR ${brief.cefrLevel} ${brief.taskType.toLowerCase()} focused on "${brief.topic}", demonstrating ${brief.skills.join(", ")} with level-appropriate grammatical accuracy, topic vocabulary, and coherent organization.`,
+        specificObjectives: [
+          `Demonstrate purposeful communication on "${brief.topic}" aligned with CEFR ${brief.cefrLevel} (${lvlObj.label}) descriptors.`,
+          `Apply target ${brief.cefrLevel} grammatical forms (${grammarList[0]}) and relevant vocabulary accurately in context.`,
+          `Organize and monitor output using structured planning and self-assessment strategies appropriate for ${brief.ageRange}.`
+        ],
+        canDoStatements: canDoStatements.slice(0, 4),
+        grammarAndVocabFocus: {
+          grammar: grammarList.slice(0, 4),
+          vocabulary: vocabList.slice(0, 8)
+        },
+        teacherInstructions,
+        studentInstructions,
+        scaffoldingTips: bank.scaffolding,
+        instrumentFormat,
+        rubricBands,
+        criteria,
+        scoringGuidance,
+        peerOrSelfAssessment,
+        adaptationNotes
+      };
+    }
+
+    function buildCriteriaForBrief(brief, resolvedType, format, grammarList, vocabList) {
+      const lvl = brief.cefrLevel;
+      const topic = brief.topic;
+      const task = brief.taskType;
+      const primarySkill = brief.skills[0] || "Speaking";
+
+      if (resolvedType === "Holistic Rubric") {
+        return [{
+          name: `Overall CEFR ${lvl} Performance (${task})`,
+          skillTag: brief.skills.slice(0, 2).join(" & "),
+          descriptors: [
+            `Fully achieves all "${topic}" task goals above or solidly at CEFR ${lvl}. Ideas are well-organized, target grammar (${grammarList[0]}) and vocabulary are accurate and varied, and communication is clear and engaging.`,
+            `Successfully completes the "${topic}" ${task.toLowerCase()} at CEFR ${lvl} standard. Organization is clear, target structures and vocabulary are used reliably with minor slips that never impede meaning.`,
+            `Partially meets CEFR ${lvl} expectations for "${topic}". Basic ideas are understandable, though gaps in organization, limited vocabulary, or recurring grammatical errors occasionally require listener/reader effort.`,
+            `Does not yet meet CEFR ${lvl} expectations. Response is incomplete or relies on isolated words/phrases; frequent errors impede comprehension and additional scaffolding is needed.`
+          ]
+        }];
+      }
+
+      if (format === "checklist") {
+        const items = [
+          {
+            name: "Task Fulfillment & Relevance",
+            skillTag: primarySkill,
+            descriptors: [`Completes all parts of the "${topic}" ${task.toLowerCase()} clearly and stays focused on the prompt.`]
+          },
+          {
+            name: "Coherence & Organization",
+            skillTag: primarySkill,
+            descriptors: [`Organizes ideas in a logical sequence using CEFR ${lvl}-appropriate connectors and transitions.`]
+          },
+          {
+            name: "Target Grammar Control",
+            skillTag: "Grammar",
+            descriptors: [`Uses target CEFR ${lvl} structures (${grammarList[0]}) accurately enough to convey clear meaning.`]
+          },
+          {
+            name: "Topic Vocabulary Usage",
+            skillTag: "Vocabulary",
+            descriptors: [`Integrates relevant "${topic}" vocabulary (${vocabList.slice(0, 3).join(", ")}) appropriately without excessive repetition.`]
+          }
+        ];
+
+        if (brief.skills.includes("Speaking") || brief.skills.includes("Interaction")) {
+          items.push({
+            name: "Pronunciation & Delivery",
+            skillTag: "Speaking",
+            descriptors: [`Maintains intelligible pronunciation, natural pacing, and clear voice projection during delivery.`]
+          });
+          items.push({
+            name: "Interactive Engagement",
+            skillTag: "Interaction",
+            descriptors: [`Listens actively and responds relevantly to partner/teacher prompts or follow-up questions.`]
+          });
+        } else if (brief.skills.includes("Writing")) {
+          items.push({
+            name: "Mechanics, Spelling & Punctuation",
+            skillTag: "Writing",
+            descriptors: [`Demonstrates accurate spelling, punctuation, capitalization, and formatting appropriate for CEFR ${lvl}.`]
+          });
+        } else if (brief.skills.includes("Listening") || brief.skills.includes("Reading")) {
+          items.push({
+            name: "Main Idea & Detail Comprehension",
+            skillTag: brief.skills.includes("Listening") ? "Listening" : "Reading",
+            descriptors: [`Accurately identifies both the main idea and specific supporting details from the "${topic}" input.`]
+          });
+        }
+        return items;
+      }
+
+      // Analytic Rubric or Rating Scale (4–5 criteria)
+      const criteria = [
+        {
+          name: "Task Achievement & Content",
+          skillTag: primarySkill,
+          descriptors: [
+            `Thoroughly addresses all requirements of the "${topic}" ${task.toLowerCase()} with well-developed, relevant details appropriate to CEFR ${lvl}.`,
+            `Addresses all main parts of the "${topic}" prompt clearly with adequate supporting details and clear purpose.`,
+            `Addresses the topic partially; some required points are brief, repetitive, or lack clear supporting detail.`,
+            `Minimal or off-topic response; fails to address core requirements of the ${task.toLowerCase()} without heavy support.`
+          ]
+        },
+        {
+          name: "Organization & Cohesion",
+          skillTag: primarySkill,
+          descriptors: [
+            `Ideas flow logically from opening to conclusion using varied CEFR ${lvl} cohesive devices smoothly and naturally.`,
+            `Clear overall structure with recognizable sections; uses standard connectors appropriately to link ideas.`,
+            `Basic sequencing is present, though transitions are mechanical or abrupt and some ideas feel loosely connected.`,
+            `Lacks clear organization; ideas appear as isolated fragments making the response difficult to follow.`
+          ]
+        },
+        {
+          name: "Grammatical Range & Accuracy",
+          skillTag: "Grammar",
+          descriptors: [
+            `Demonstrates strong CEFR ${lvl} control of target grammar (${grammarList[0]}); minor slips are rare and never obscure meaning.`,
+            `Uses target CEFR ${lvl} structures reliably; occasional errors occur in more complex phrasing without blocking comprehension.`,
+            `Attempts target structures with mixed accuracy; frequent tense or agreement errors occasionally strain comprehension.`,
+            `Relies almost exclusively on basic memorized patterns; persistent errors frequently impede intended meaning.`
+          ]
+        },
+        {
+          name: "Vocabulary Range & Precision",
+          skillTag: "Vocabulary",
+          descriptors: [
+            `Uses a rich range of "${topic}" vocabulary and collocations (${vocabList.slice(0, 3).join(", ")}) accurately and naturally.`,
+            `Uses sufficient topic-specific vocabulary accurately for CEFR ${lvl}; paraphrases effectively when needed.`,
+            `Uses basic general vocabulary with limited topic-specific terms; noticeable repetition or occasional word-choice errors.`,
+            `Very restricted vocabulary range; relies on isolated words or L1 transfer to convey basic ideas.`
+          ]
+        }
+      ];
+
+      // Add a 5th skill-specific criterion
+      if (brief.skills.includes("Speaking") || brief.skills.includes("Interaction")) {
+        criteria.push({
+          name: "Fluency, Pronunciation & Interaction",
+          skillTag: brief.skills.includes("Interaction") ? "Interaction" : "Speaking",
+          descriptors: [
+            `Speaks smoothly at a natural CEFR ${lvl} pace with clear pronunciation/intonation; engages and responds confidently.`,
+            `Maintains steady flow with brief planning pauses; pronunciation is clearly intelligible; handles interaction adequately.`,
+            `Frequent hesitations or script-reading interrupt flow; occasional pronunciation slips require listener effort.`,
+            `Long pauses break down communication; pronunciation severely limits intelligibility or unable to respond to prompts.`
+          ]
+        });
+      } else if (brief.skills.includes("Writing")) {
+        criteria.push({
+          name: "Register, Mechanics & Presentation",
+          skillTag: "Writing",
+          descriptors: [
+            `Consistently maintains appropriate register for the ${task.toLowerCase()}; spelling, punctuation, and layout are virtually error-free.`,
+            `Register is generally appropriate; minor spelling or punctuation errors do not distract the reader.`,
+            `Inconsistent tone or register; noticeable spelling/punctuation errors occasionally distract from readability.`,
+            `Frequent mechanical errors and lack of formatting make the text very difficult to read.`
+          ]
+        });
+      } else if (brief.skills.includes("Listening") || brief.skills.includes("Reading")) {
+        const sk = brief.skills.includes("Listening") ? "Listening" : "Reading";
+        criteria.push({
+          name: `${sk} Comprehension & Evidence`,
+          skillTag: sk,
+          descriptors: [
+            `Accurately identifies main ideas, key details, and implied meaning from the "${topic}" source with precise evidence.`,
+            `Correctly captures main ideas and most specific details with clear reference to the source.`,
+            `Understands general gist but misses several key details or misinterprets complex phrasing.`,
+            `Struggles to identify main points; relies heavily on isolated keywords without accurate comprehension.`
+          ]
+        });
+      }
+
+      return criteria;
+    }
+
+    // =========================================================================
+    // GENERATION & REFINEMENT ROUTER (Optional Gemini AI + Instant Built-in Fallback)
+    // =========================================================================
+    async function callGeminiStructured(promptText, userKey) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(userKey)}`;
+
+      const responseSchema = {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          cefrLevel: { type: "STRING" },
+          assessmentType: { type: "STRING" },
+          instrumentType: { type: "STRING" },
+          skills: { type: "ARRAY", items: { type: "STRING" } },
+          totalPoints: { type: "NUMBER" },
+          weighting: { type: "STRING" },
+          estimatedTime: { type: "STRING" },
+          targetAudience: { type: "STRING" },
+          generalObjective: { type: "STRING" },
+          specificObjectives: { type: "ARRAY", items: { type: "STRING" } },
+          canDoStatements: { type: "ARRAY", items: { type: "STRING" } },
+          grammarAndVocabFocus: {
+            type: "OBJECT",
+            properties: {
+              grammar: { type: "ARRAY", items: { type: "STRING" } },
+              vocabulary: { type: "ARRAY", items: { type: "STRING" } }
+            },
+            required: ["grammar", "vocabulary"]
+          },
+          teacherInstructions: { type: "ARRAY", items: { type: "STRING" } },
+          studentInstructions: { type: "ARRAY", items: { type: "STRING" } },
+          scaffoldingTips: { type: "ARRAY", items: { type: "STRING" } },
+          instrumentFormat: { type: "STRING", enum: ["rubric", "checklist", "rating_scale"] },
+          rubricBands: { type: "ARRAY", items: { type: "STRING" } },
+          criteria: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                name: { type: "STRING" },
+                weightPoints: { type: "NUMBER" },
+                skillTag: { type: "STRING" },
+                descriptors: { type: "ARRAY", items: { type: "STRING" } }
+              },
+              required: ["name", "weightPoints", "skillTag", "descriptors"]
+            }
+          },
+          scoringGuidance: { type: "STRING" },
+          peerOrSelfAssessment: { type: "ARRAY", items: { type: "STRING" } },
+          adaptationNotes: { type: "STRING" }
+        },
+        required: [
+          "title", "cefrLevel", "assessmentType", "instrumentType", "skills",
+          "totalPoints", "weighting", "estimatedTime", "targetAudience",
+          "generalObjective", "specificObjectives", "canDoStatements",
+          "grammarAndVocabFocus", "teacherInstructions", "studentInstructions",
+          "scaffoldingTips", "instrumentFormat", "rubricBands", "criteria",
+          "scoringGuidance", "peerOrSelfAssessment", "adaptationNotes"
+        ]
+      };
+
+      const systemInstruction = `You are a highly experienced professional English language educator and CEFR assessment specialist (Pre-A1 to C2).
+Create practical, classroom-ready, scaffolded English assessment instruments strictly aligned with official CEFR descriptors, British Council / EAQUALS core inventory grammar & vocabulary, and ALTE best practices.
+Rules:
+- Ensure the sum of all 'weightPoints' across 'criteria' equals 'totalPoints' exactly.
+- If instrumentFormat is 'rubric' or 'rating_scale', provide 4 bands in 'rubricBands' (highest to lowest) and 4 descriptors per criterion.
+- If instrumentFormat is 'checklist', provide 2 bands in 'rubricBands' and 1 clear observable indicator in descriptors[0].`;
+
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: responseSchema
+        }
+      };
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`API HTTP ${response.status}`);
+      }
+
+      const result = await response.json();
+      const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) throw new Error("Empty model response");
+      return JSON.parse(text);
+    }
+
+    async function generateAssessment() {
+      const brief = getBriefData();
+      const userKey = getUserApiKey();
+      setWorkspaceState("loading", `Designing your ${brief.cefrLevel} ${brief.instrumentType} for "${brief.topic}"...`);
+
+      // If user configured a Gemini API key, try live AI first and gracefully fallback to Built-in CEFR Engine
+      if (userKey) {
+        const prompt = `Design a complete CEFR-aligned English assessment instrument:
+- Requested Instrument Type: ${brief.instrumentType}
+- CEFR Level: ${brief.cefrLevel}
+- Topic / Unit: ${brief.topic}
+- Grammar & Vocabulary Focus: ${brief.grammarVocab || "Select appropriate CEFR " + brief.cefrLevel + " grammar & vocabulary"}
+- Group Size: ${brief.groupSize} students
+- Age Range: ${brief.ageRange}
+- Target Skills: ${brief.skills.join(", ")}
+- Assessment Purpose: ${brief.purpose}
+- Activity / Task Type: ${brief.taskType}
+- Total Points: ${brief.totalPoints}
+- Grade Weighting: ${brief.weighting}
+- Include Student Self/Peer-Assessment Checklist: ${brief.includeSelfAssess ? "Yes" : "Brief"}`;
+
+        try {
+          const aiData = await callGeminiStructured(prompt, userKey);
+          applyGeneratedAssessment(aiData, "Generated with Gemini AI!");
+          return;
+        } catch (err) {
+          console.warn("Gemini AI unavailable, falling back to Built-in CEFR Engine:", err);
+          const localData = buildLocalAssessment(brief);
+          applyGeneratedAssessment(localData, "API key error—generated using Built-in CEFR Engine instead.");
+          return;
+        }
+      }
+
+      // Instant Built-in CEFR Engine (100% reliable on GitHub Pages)
+      await new Promise(r => setTimeout(r, 380));
+      const localData = buildLocalAssessment(brief);
+      applyGeneratedAssessment(localData, "Assessment instrument generated!");
+    }
+
+    function applyGeneratedAssessment(data, toastMsg) {
+      state.currentAssessment = data;
+      state.graderSelections = {};
+      state.viewMode = "document";
+      updateViewModeTabs();
+      renderAssessmentDocument();
+      setWorkspaceState("result");
+      showToast(toastMsg, "success");
+    }
+
+    async function refineAssessment() {
+      const instruction = document.getElementById("refineInput").value.trim();
+      if (!instruction || !state.currentAssessment) return;
+
+      const userKey = getUserApiKey();
+
+      if (userKey) {
+        setWorkspaceState("loading", "Applying your AI refinements...");
+        const prompt = `Update this CEFR English assessment instrument JSON based on the teacher's revision request.
+Current JSON: ${JSON.stringify(state.currentAssessment)}
+Revision Request: "${instruction}"
+Ensure criterion weightPoints sum accurately to totalPoints.`;
+        try {
+          const updated = await callGeminiStructured(prompt, userKey);
+          document.getElementById("refineInput").value = "";
+          applyGeneratedAssessment(updated, "Instrument refined with Gemini AI!");
+          return;
+        } catch (err) {
+          console.warn("AI refine failed, using built-in smart refiner:", err);
+        }
+      }
+
+      // Built-in Smart Refiner (works offline & on GitHub Pages!)
+      const doc = JSON.parse(JSON.stringify(state.currentAssessment));
+      const lower = instruction.toLowerCase();
+      let applied = [];
+
+      // 1. Adjust total points (e.g., "100 points", "50 pts")
+      const ptsMatch = lower.match(/(\d+)\s*(?:points?|pts?)/);
+      if (ptsMatch) {
+        const newTotal = Math.max(4, parseInt(ptsMatch[1], 10));
+        doc.totalPoints = newTotal;
+        const newWeights = distributePoints(newTotal, doc.criteria.length);
+        doc.criteria.forEach((c, i) => { c.weightPoints = newWeights[i]; });
+        doc.scoringGuidance = `Total possible score updated to ${newTotal} points across ${doc.criteria.length} criteria. Passing / proficiency benchmark: ${Math.round(newTotal * 0.7 * 10) / 10}/${newTotal} (70%).`;
+        applied.push(`rescaled to ${newTotal} points`);
+      }
+
+      // 2. Convert to Checklist or Rubric
+      if (lower.includes("checklist") && doc.instrumentFormat !== "checklist") {
+        doc.instrumentFormat = "checklist";
+        doc.instrumentType = "Observation Checklist";
+        doc.rubricBands = ["Achieved / Yes", "Not Yet / Needs Practice"];
+        applied.push("converted to Checklist format");
+      } else if (lower.includes("rubric") && doc.instrumentFormat === "checklist") {
+        doc.instrumentFormat = "rubric";
+        doc.instrumentType = "Analytic Rubric";
+        doc.rubricBands = ["Exemplary (4)", "Proficient (3)", "Developing (2)", "Beginning (1)"];
+        doc.criteria = doc.criteria.map(c => ({
+          ...c,
+          descriptors: [
+            c.descriptors[0] || `Exemplary performance at CEFR ${doc.cefrLevel}.`,
+            `Proficient CEFR ${doc.cefrLevel} control with minor slips that do not impede communication.`,
+            `Developing performance; partially meets CEFR ${doc.cefrLevel} expectations with occasional gaps.`,
+            `Beginning level; requires additional modeling and scaffolding to meet CEFR ${doc.cefrLevel} goals.`
+          ]
+        }));
+        applied.push("converted to Analytic Rubric format");
+      }
+
+      // 3. Add a criterion (pronunciation, creativity, teamwork, visual, grammar)
+      if (lower.includes("add ")) {
+        let newCrit = null;
+        if (lower.includes("pronunciation")) {
+          newCrit = {
+            name: "Pronunciation, Stress & Intonation",
+            skillTag: "Speaking",
+            descriptors: [
+              "Clear, natural pronunciation, word stress, and intonation throughout; effortlessly intelligible.",
+              "Generally clear pronunciation with occasional L1 accent features that never block comprehension.",
+              "Some mispronunciations or flat intonation occasionally require extra listener effort.",
+              "Frequent pronunciation errors significantly impede intelligibility."
+            ]
+          };
+        } else if (lower.includes("creativ") || lower.includes("visual") || lower.includes("slide")) {
+          newCrit = {
+            name: "Creativity & Visual Support",
+            skillTag: "Presentation",
+            descriptors: [
+              "Original, engaging ideas supported by clean, well-designed visuals that enhance audience understanding.",
+              "Relevant creative elements and clear visuals that support key points effectively.",
+              "Basic visuals or limited originality; slides/props are occasionally overcrowded or underused.",
+              "Visual support is missing, illegible, or disconnected from the language task."
+            ]
+          };
+        } else if (lower.includes("team") || lower.includes("collab") || lower.includes("group")) {
+          newCrit = {
+            name: "Collaboration & Turn-Taking",
+            skillTag: "Interaction",
+            descriptors: [
+              "Contributes equitably, listens actively, and supports teammates smoothly throughout the task.",
+              "Participates reliably and shares speaking/working turns constructively.",
+              "Uneven participation; occasionally dominates or waits passively for group prompts.",
+              "Minimal collaboration or disrupts group workflow during the task."
+            ]
+          };
+        } else {
+          const customName = instruction.replace(/.*add\s+(?:a\s+|an\s+)?/i, "").replace(/criterion|criteria/i, "").trim() || "Additional Focus Criterion";
+          const capName = customName.charAt(0).toUpperCase() + customName.slice(1);
+          newCrit = {
+            name: capName,
+            skillTag: doc.skills[0] || "Language",
+            descriptors: [
+              `Consistently demonstrates exemplary ${customName.toLowerCase()} aligned with CEFR ${doc.cefrLevel}.`,
+              `Demonstrates solid ${customName.toLowerCase()} meeting CEFR ${doc.cefrLevel} expectations.`,
+              `Shows developing ${customName.toLowerCase()} with some inconsistencies.`,
+              `Requires targeted scaffolding to develop ${customName.toLowerCase()}.`
+            ]
+          };
+        }
+
+        if (newCrit) {
+          doc.criteria.push(newCrit);
+          const rebalanced = distributePoints(doc.totalPoints, doc.criteria.length);
+          doc.criteria.forEach((c, i) => { c.weightPoints = rebalanced[i]; });
+          applied.push(`added "${newCrit.name}"`);
+        }
+      }
+
+      // 4. Simplify for younger learners
+      if (lower.includes("simplif") || lower.includes("younger") || lower.includes("easier")) {
+        doc.studentInstructions = [
+          "Look at the topic and plan your ideas with a partner or picture chart.",
+          "Use the helpful words and sentence starters from the board.",
+          "Do your best to speak or write clearly, one step at a time.",
+          "Check off your smiley/can-do checklist when you finish!"
+        ];
+        doc.scaffoldingTips.push("Break the task into short 5-minute mini-steps with visual modeling and sentence strips.");
+        applied.push("simplified student instructions & added scaffolding");
+      }
+
+      document.getElementById("refineInput").value = "";
+
+      if (applied.length) {
+        applyGeneratedAssessment(doc, `Updated: ${applied.join(", ")}.`);
+      } else {
+        // Append teacher custom note cleanly so every refine request has visible feedback
+        doc.adaptationNotes = `${doc.adaptationNotes} Teacher customization note: ${instruction}.`;
+        applyGeneratedAssessment(doc, "Added your note to Adaptation Notes. (Tip: Add a free Gemini API key in top-right settings for full AI rewrites!)");
+      }
+    }
+
+    function loadSampleInstrument() {
+      state.currentAssessment = JSON.parse(JSON.stringify(SAMPLE_ASSESSMENT));
+      state.graderSelections = {};
+      state.viewMode = "document";
+      updateViewModeTabs();
+      renderAssessmentDocument();
+      setWorkspaceState("result");
+      showToast("Loaded sample B1 Oral Presentation Rubric", "info");
+    }
+
+    // =========================================================================
+    // DOCUMENT & INTERACTIVE GRADER RENDERING
+    // =========================================================================
+    function setWorkspaceState(view, loadingMsg = "") {
+      document.getElementById("emptyState").classList.toggle("hidden", view !== "empty");
+      document.getElementById("loadingState").classList.toggle("hidden", view !== "loading");
+      document.getElementById("resultWorkspace").classList.toggle("hidden", view !== "result");
+      if (loadingMsg) {
+        document.getElementById("loadingSubtext").textContent = loadingMsg;
+      }
+    }
+
+    function updateViewModeTabs() {
+      const docBtn = document.getElementById("tabDocView");
+      const gradBtn = document.getElementById("tabGraderView");
+      const banner = document.getElementById("graderBanner");
+
+      if (state.viewMode === "document") {
+        docBtn.className = "px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer";
+        gradBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer flex items-center gap-1.5";
+        banner.classList.add("hidden");
+      } else {
+        gradBtn.className = "px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-sm transition cursor-pointer flex items-center gap-1.5";
+        docBtn.className = "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer";
+        banner.classList.remove("hidden");
+        updateGraderScore();
+      }
+    }
+
+    function renderAssessmentDocument() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+
+      const isGrader = state.viewMode === "grader";
+      const isChecklist = doc.instrumentFormat === "checklist";
+      const container = document.getElementById("documentPreviewCard");
+
+      let instrumentTableHtml = "";
+
+      if (isChecklist) {
+        instrumentTableHtml = `
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="bg-slate-800 text-white">
+                  <th class="p-3 font-semibold w-1/4">Criterion / Focus</th>
+                  <th class="p-3 font-semibold">Observable Indicator</th>
+                  <th class="p-3 font-semibold text-center w-20">Weight</th>
+                  <th class="p-3 font-semibold text-center w-28">${isGrader ? "Score" : "Check"}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${doc.criteria.map((c, idx) => {
+                  const checked = Boolean(state.graderSelections[idx]);
+                  return `
+                    <tr class="${isGrader ? "hover:bg-brand-50/40 cursor-pointer" : "hover:bg-slate-50"}" ${isGrader ? `onclick="toggleChecklistCriterion(${idx})"` : ""}>
+                      <td class="p-3 align-top font-semibold text-slate-900">
+                        ${escapeHtml(c.name)}
+                        <div class="mt-1"><span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 rounded-md">${escapeHtml(c.skillTag)}</span></div>
+                      </td>
+                      <td class="p-3 align-top text-slate-700">${escapeHtml(c.descriptors[0] || "")}</td>
+                      <td class="p-3 align-top text-center font-bold text-brand-700">${c.weightPoints} pts</td>
+                      <td class="p-3 align-top text-center">
+                        ${
+                          isGrader
+                            ? `<span class="inline-flex items-center justify-center w-7 h-7 rounded-lg border-2 font-bold transition ${checked ? "bg-teal-600 border-teal-600 text-white" : "border-slate-300 text-transparent"}">✓</span>`
+                            : `<span class="inline-block w-5 h-5 rounded border-2 border-slate-300"></span>`
+                        }
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      } else {
+        const bands = doc.rubricBands && doc.rubricBands.length ? doc.rubricBands : ["Exemplary (4)", "Proficient (3)", "Developing (2)", "Beginning (1)"];
+        instrumentTableHtml = `
+          <div class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-800 text-white">
+                  <th class="p-3 font-semibold min-w-[140px] border-r border-slate-700">Criteria & Weight</th>
+                  ${bands.map(b => `<th class="p-3 font-semibold min-w-[130px] border-r border-slate-700 last:border-r-0">${escapeHtml(b)}</th>`).join("")}
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                ${doc.criteria.map((c, cIdx) => {
+                  const selectedBand = state.graderSelections[cIdx];
+                  return `
+                    <tr class="page-break-inside-avoid">
+                      <td class="p-3 align-top bg-slate-50/80 border-r border-slate-200">
+                        <div class="font-bold text-slate-900 text-xs sm:text-sm">${escapeHtml(c.name)}</div>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span class="px-2 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-800 rounded-md">${c.weightPoints} pts</span>
+                          <span class="px-2 py-0.5 text-[10px] font-medium bg-slate-200/80 text-slate-700 rounded-md">${escapeHtml(c.skillTag)}</span>
+                        </div>
+                      </td>
+                      ${bands.map((_, bIdx) => {
+                        const desc = c.descriptors[bIdx] || "";
+                        const isSelected = isGrader && selectedBand === bIdx;
+                        const bandPoints = calcBandPoints(c.weightPoints, bIdx, bands.length);
+                        return `
+                          <td class="p-3 align-top border-r border-slate-200 last:border-r-0 transition ${
+                            isGrader
+                              ? (isSelected ? "bg-teal-50 ring-2 ring-inset ring-teal-500 cursor-pointer" : "hover:bg-brand-50/50 cursor-pointer")
+                              : ""
+                          }" ${isGrader ? `onclick="selectRubricCell(${cIdx}, ${bIdx})"` : ""}>
+                            <div class="text-slate-700 leading-relaxed">${escapeHtml(desc)}</div>
+                            ${isGrader ? `<div class="mt-2 text-[10px] font-bold ${isSelected ? "text-teal-700" : "text-slate-400"}">${isSelected ? "✓ Selected • " : ""}${bandPoints} pts</div>` : ""}
+                          </td>
+                        `;
+                      }).join("")}
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div class="border-b border-slate-200 pb-5">
+          <div class="flex flex-wrap items-center gap-2 mb-2.5">
+            <span class="px-2.5 py-1 text-xs font-extrabold bg-brand-600 text-white rounded-lg">CEFR ${escapeHtml(doc.cefrLevel)}</span>
+            <span class="px-2.5 py-1 text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200 rounded-lg">${escapeHtml(doc.assessmentType)}</span>
+            <span class="px-2.5 py-1 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg">${escapeHtml(doc.instrumentType)}</span>
+            <span class="px-2.5 py-1 text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 rounded-lg">${doc.totalPoints} pts (${escapeHtml(doc.weighting)})</span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">${escapeHtml(doc.title)}</h2>
+          <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-slate-500">
+            <span><strong>Group:</strong> ${escapeHtml(doc.targetAudience)}</span>
+            <span><strong>Est. Time:</strong> ${escapeHtml(doc.estimatedTime)}</span>
+            <span><strong>Skills:</strong> ${(doc.skills || []).map(escapeHtml).join(", ")}</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 page-break-inside-avoid">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-brand-700">Learning Objectives</h3>
+            <p class="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">${escapeHtml(doc.generalObjective)}</p>
+            <ul class="space-y-1.5 text-xs text-slate-600 list-disc pl-4">
+              ${(doc.specificObjectives || []).map(obj => `<li>${escapeHtml(obj)}</li>`).join("")}
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-teal-50/50 border border-teal-200/70 space-y-2.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-teal-800">CEFR Can-Do Descriptors</h3>
+            <ul class="space-y-2 text-xs text-slate-700">
+              ${(doc.canDoStatements || []).map(stmt => `
+                <li class="flex items-start gap-2">
+                  <span class="text-teal-600 font-bold mt-0.5">✓</span>
+                  <span>${escapeHtml(stmt)}</span>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-indigo-50/40 border border-indigo-100 page-break-inside-avoid">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-800 mb-2.5">Target Language Focus (CEFR ${escapeHtml(doc.cefrLevel)})</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <div class="font-semibold text-slate-800 mb-1">Grammar Structures</div>
+              <ul class="list-disc pl-4 space-y-1 text-slate-600">
+                ${(doc.grammarAndVocabFocus?.grammar || []).map(g => `<li>${escapeHtml(g)}</li>`).join("")}
+              </ul>
+            </div>
+            <div>
+              <div class="font-semibold text-slate-800 mb-1">Key Vocabulary & Collocations</div>
+              <div class="flex flex-wrap gap-1.5 mt-1">
+                ${(doc.grammarAndVocabFocus?.vocabulary || []).map(v => `<span class="px-2 py-0.5 bg-white border border-indigo-200/70 text-indigo-900 rounded-md font-medium">${escapeHtml(v)}</span>`).join("")}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 page-break-inside-avoid">
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Student Instructions</h3>
+            <ol class="list-decimal pl-4 space-y-1.5 text-xs sm:text-sm text-slate-700 leading-relaxed">
+              ${(doc.studentInstructions || []).map(ins => `<li>${escapeHtml(ins)}</li>`).join("")}
+            </ol>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Teacher Administration & Scaffolding</h3>
+            <ul class="list-disc pl-4 space-y-1.5 text-xs text-slate-600 leading-relaxed">
+              ${(doc.teacherInstructions || []).map(ins => `<li>${escapeHtml(ins)}</li>`).join("")}
+            </ul>
+            ${
+              doc.scaffoldingTips?.length
+                ? `<div class="mt-2 p-3 rounded-xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-900">
+                    <strong class="block mb-1">Scaffolding Tips:</strong>
+                    <ul class="list-disc pl-4 space-y-1">${doc.scaffoldingTips.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
+                  </div>`
+                : ""
+            }
+          </div>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Assessment Instrument</h3>
+            <span class="text-xs text-slate-500">Total: <strong>${doc.totalPoints} points</strong></span>
+          </div>
+          ${instrumentTableHtml}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 page-break-inside-avoid">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+            <h4 class="font-bold text-slate-900 uppercase tracking-wider">Scoring Guidance</h4>
+            <p class="text-slate-600 leading-relaxed">${escapeHtml(doc.scoringGuidance)}</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+            <h4 class="font-bold text-slate-900 uppercase tracking-wider">Classroom Adaptation Notes</h4>
+            <p class="text-slate-600 leading-relaxed">${escapeHtml(doc.adaptationNotes)}</p>
+          </div>
+        </div>
+
+        ${
+          doc.peerOrSelfAssessment?.length
+            ? `<div class="p-4 rounded-xl border border-slate-200 space-y-2.5 page-break-inside-avoid">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Student Self / Peer-Assessment Checklist</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  ${doc.peerOrSelfAssessment.map(item => `
+                    <label class="flex items-start gap-2.5 text-xs text-slate-700 p-2 rounded-lg bg-slate-50">
+                      <input type="checkbox" class="mt-0.5 rounded text-brand-600" />
+                      <span>${escapeHtml(item)}</span>
+                    </label>
+                  `).join("")}
+                </div>
+              </div>`
+            : ""
+        }
+      `;
+    }
+
+    // =========================================================================
+    // INTERACTIVE GRADER LOGIC
+    // =========================================================================
+    function calcBandPoints(weightPoints, bandIndex, totalBands) {
+      if (totalBands <= 1) return weightPoints;
+      const ratios = totalBands === 4 ? [1.0, 0.75, 0.5, 0.25] : Array.from({ length: totalBands }, (_, i) => (totalBands - i) / totalBands);
+      const ratio = ratios[bandIndex] ?? 0;
+      return Math.round(weightPoints * ratio * 100) / 100;
+    }
+
+    window.selectRubricCell = function(criterionIdx, bandIdx) {
+      state.graderSelections[criterionIdx] = bandIdx;
+      renderAssessmentDocument();
+      updateGraderScore();
+    };
+
+    window.toggleChecklistCriterion = function(criterionIdx) {
+      state.graderSelections[criterionIdx] = !state.graderSelections[criterionIdx];
+      renderAssessmentDocument();
+      updateGraderScore();
+    };
+
+    function updateGraderScore() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+
+      let earned = 0;
+      let assessedCount = 0;
+      const isChecklist = doc.instrumentFormat === "checklist";
+      const totalBands = doc.rubricBands?.length || 4;
+
+      doc.criteria.forEach((c, idx) => {
+        if (isChecklist) {
+          if (state.graderSelections[idx]) {
+            earned += Number(c.weightPoints) || 0;
+            assessedCount++;
+          }
+        } else if (state.graderSelections[idx] !== undefined) {
+          earned += calcBandPoints(Number(c.weightPoints) || 0, state.graderSelections[idx], totalBands);
+          assessedCount++;
+        }
+      });
+
+      const maxPts = Number(doc.totalPoints) || 1;
+      const pct = Math.round((earned / maxPts) * 100);
+
+      document.getElementById("graderScoreDisplay").textContent = `${Number(earned.toFixed(2))} / ${maxPts} pts`;
+      document.getElementById("graderPercentBadge").textContent = `${pct}%`;
+
+      let bandLabel = "Select criteria to calculate";
+      if (assessedCount > 0) {
+        if (pct >= 90) bandLabel = `Exceeds ${doc.cefrLevel} Expectations`;
+        else if (pct >= 75) bandLabel = `Solid ${doc.cefrLevel} Proficiency`;
+        else if (pct >= 60) bandLabel = `Approaching ${doc.cefrLevel} Target`;
+        else bandLabel = `Needs Additional Scaffolding`;
+      }
+      document.getElementById("graderFeedbackTag").textContent = bandLabel;
+    }
+
+    // =========================================================================
+    // DIRECT VECTOR PDF EXPORT (jsPDF + AutoTable)
+    // =========================================================================
+    function sanitizePdfText(str) {
+      return String(str ?? "")
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/[\u2013\u2014]/g, "-")
+        .replace(/\u2026/g, "...")
+        .replace(/\u2022/g, "|")
+        .replace(/\u00D7/g, "x")
+        .replace(/\u2713|\u2714/g, "[x]")
+        .replace(/[^\x20-\x7E\xA0-\xFF\n]/g, "");
+    }
+
+    function exportToPdf() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast("PDF engine is still loading. Please try again in a moment.", "error");
+        return;
+      }
+
+      const btn = document.getElementById("btnDownloadPdf");
+      const label = document.getElementById("pdfBtnLabel");
+      btn.disabled = true;
+      label.textContent = "Building PDF...";
+
+      try {
+        const isChecklist = doc.instrumentFormat === "checklist";
+        const orientation = isChecklist ? "portrait" : "landscape";
+        const pdf = new window.jspdf.jsPDF({ orientation, unit: "mm", format: "a4" });
+
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 14;
+        const contentW = pageW - margin * 2;
+        let y = margin;
+
+        const ensureSpace = (neededMm) => {
+          if (y + neededMm > pageH - 16) {
+            pdf.addPage();
+            y = margin;
+          }
+        };
+
+        const addSectionHeading = (text) => {
+          ensureSpace(12);
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10);
+          pdf.setTextColor(67, 56, 202);
+          pdf.text(sanitizePdfText(text).toUpperCase(), margin, y);
+          y += 1.8;
+          pdf.setDrawColor(224, 231, 255);
+          pdf.setLineWidth(0.4);
+          pdf.line(margin, y, pageW - margin, y);
+          y += 4.5;
+          pdf.setTextColor(30, 41, 59);
+        };
+
+        const addParagraph = (text, opts = {}) => {
+          const { bold = false, size = 9.5, indent = 0, color = [51, 65, 85], gapAfter = 2.5 } = opts;
+          pdf.setFont("helvetica", bold ? "bold" : "normal");
+          pdf.setFontSize(size);
+          pdf.setTextColor(...color);
+          const lines = pdf.splitTextToSize(sanitizePdfText(text), contentW - indent);
+          const lineHeight = size * 0.43;
+          lines.forEach(line => {
+            ensureSpace(lineHeight + 1);
+            pdf.text(line, margin + indent, y);
+            y += lineHeight;
+          });
+          y += gapAfter;
+        };
+
+        const addBulletList = (items, prefixFn = () => "-") => {
+          (items || []).forEach((item, idx) => {
+            const prefix = prefixFn(idx);
+            addParagraph(`${prefix}  ${item}`, { indent: 2.5, size: 9.2, gapAfter: 1.8 });
+          });
+          y += 1.5;
+        };
+
+        // Top Header Banner
+        pdf.setFillColor(49, 46, 129);
+        pdf.roundedRect(margin, y, contentW, 24, 2.5, 2.5, "F");
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.setTextColor(199, 210, 254);
+        const badgeLine = `CEFR ${doc.cefrLevel}  |  ${doc.assessmentType} ${doc.instrumentType}  |  ${doc.totalPoints} pts (${doc.weighting})`;
+        pdf.text(sanitizePdfText(badgeLine).toUpperCase(), margin + 5, y + 6.5);
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(13.5);
+        pdf.setTextColor(255, 255, 255);
+        const titleLines = pdf.splitTextToSize(sanitizePdfText(doc.title), contentW - 10);
+        pdf.text(titleLines.slice(0, 2), margin + 5, y + 13.5);
+        y += 28;
+
+        // Metadata + Fill-in Line
+        pdf.setFillColor(248, 250, 252);
+        pdf.setDrawColor(226, 232, 240);
+        pdf.roundedRect(margin, y, contentW, 13, 2, 2, "FD");
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(71, 85, 105);
+        const metaStr = `Group: ${doc.targetAudience}   |   Est. Time: ${doc.estimatedTime}   |   Skills: ${(doc.skills || []).join(", ")}`;
+        pdf.text(sanitizePdfText(metaStr), margin + 4, y + 5.2);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(30, 41, 59);
+        pdf.text("Student Name: _______________________________________    Date: ______________    Score: ______ / " + doc.totalPoints, margin + 4, y + 10.5);
+        y += 18;
+
+        addSectionHeading("Learning Objectives");
+        addParagraph(doc.generalObjective, { bold: true, size: 9.5, color: [15, 23, 42], gapAfter: 2.5 });
+        addBulletList(doc.specificObjectives);
+
+        addSectionHeading("CEFR Can-Do Descriptors");
+        addBulletList(doc.canDoStatements, () => "[*]");
+
+        addSectionHeading(`Target Language Focus (CEFR ${doc.cefrLevel})`);
+        if (doc.grammarAndVocabFocus?.grammar?.length) {
+          addParagraph("Grammar Structures:", { bold: true, size: 9.2, gapAfter: 1.5 });
+          addBulletList(doc.grammarAndVocabFocus.grammar);
+        }
+        if (doc.grammarAndVocabFocus?.vocabulary?.length) {
+          addParagraph(`Key Vocabulary & Collocations: ${doc.grammarAndVocabFocus.vocabulary.join(", ")}`, { size: 9.2, gapAfter: 4 });
+        }
+
+        addSectionHeading("Student Instructions");
+        addBulletList(doc.studentInstructions, i => `${i + 1}.`);
+
+        addSectionHeading("Teacher Administration & Scaffolding");
+        addBulletList(doc.teacherInstructions);
+        if (doc.scaffoldingTips?.length) {
+          addParagraph("Scaffolding Tips:", { bold: true, size: 9.2, color: [146, 64, 14], gapAfter: 1.5 });
+          addBulletList(doc.scaffoldingTips);
+        }
+
+        addSectionHeading(`Assessment Instrument (${doc.totalPoints} Points Total)`);
+
+        if (isChecklist) {
+          const head = [["Criterion & Skill", "Observable Indicator", "Weight", "Achieved"]];
+          const body = (doc.criteria || []).map(c => [
+            sanitizePdfText(`${c.name}\n(${c.skillTag})`),
+            sanitizePdfText(c.descriptors?.[0] || ""),
+            `${c.weightPoints} pts`,
+            "[  ] Yes   [  ] No"
+          ]);
+
+          pdf.autoTable({
+            startY: y,
+            margin: { left: margin, right: margin },
+            head,
+            body,
+            theme: "grid",
+            headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+            bodyStyles: { fontSize: 8.5, textColor: [30, 41, 59], cellPadding: 3, valign: "top" },
+            alternateRowStyles: { fillColor: [248, 250, 252] },
+            columnStyles: {
+              0: { cellWidth: 44, fontStyle: "bold" },
+              2: { cellWidth: 22, halign: "center", fontStyle: "bold" },
+              3: { cellWidth: 34, halign: "center" }
+            }
+          });
+        } else {
+          const bands = doc.rubricBands?.length ? doc.rubricBands : ["Exemplary (4)", "Proficient (3)", "Developing (2)", "Beginning (1)"];
+          const head = [["Criteria & Weight", ...bands.map(sanitizePdfText)]];
+          const body = (doc.criteria || []).map(c => [
+            sanitizePdfText(`${c.name}\n${c.weightPoints} pts | ${c.skillTag}`),
+            ...bands.map((_, idx) => sanitizePdfText(c.descriptors?.[idx] || ""))
+          ]);
+
+          const critColW = 42;
+          const bandColW = (contentW - critColW) / bands.length;
+          const colStyles = { 0: { cellWidth: critColW, fontStyle: "bold", fillColor: [241, 245, 249] } };
+          bands.forEach((_, idx) => {
+            colStyles[idx + 1] = { cellWidth: bandColW };
+          });
+
+          pdf.autoTable({
+            startY: y,
+            margin: { left: margin, right: margin },
+            head,
+            body,
+            theme: "grid",
+            headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8.5 },
+            bodyStyles: { fontSize: 8.2, textColor: [30, 41, 59], cellPadding: 2.8, valign: "top" },
+            columnStyles: colStyles
+          });
+        }
+
+        y = (pdf.lastAutoTable?.finalY || y) + 7;
+
+        addSectionHeading("Scoring Guidance");
+        addParagraph(doc.scoringGuidance, { size: 9.2, gapAfter: 4 });
+
+        addSectionHeading("Classroom Adaptation Notes");
+        addParagraph(doc.adaptationNotes, { size: 9.2, gapAfter: 4 });
+
+        if (doc.peerOrSelfAssessment?.length) {
+          addSectionHeading("Student Self / Peer-Assessment Checklist");
+          addBulletList(doc.peerOrSelfAssessment, () => "[  ]");
+        }
+
+        const totalPages = pdf.internal.getNumberOfPages();
+        for (let p = 1; p <= totalPages; p++) {
+          pdf.setPage(p);
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(8);
+          pdf.setTextColor(148, 163, 184);
+          pdf.text(`CEFR Assessment Instrument Designer  |  CEFR ${sanitizePdfText(doc.cefrLevel)}`, margin, pageH - 8);
+          pdf.text(`Page ${p} of ${totalPages}`, pageW - margin, pageH - 8, { align: "right" });
+        }
+
+        const pdfBlob = pdf.output("blob");
+        triggerDownload(pdfBlob, `${slugify(doc.title)}.pdf`);
+        showToast("PDF downloaded successfully!", "success");
+      } catch (err) {
+        console.error("PDF export error:", err);
+        showToast("Could not generate PDF. Try downloading .DOC instead.", "error");
+      } finally {
+        btn.disabled = false;
+        label.textContent = "Download PDF";
+      }
+    }
+
+    // =========================================================================
+    // EXPORT & CLIPBOARD UTILITIES
+    // =========================================================================
+    function copyInstrumentForDocs() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+
+      let plain = `${doc.title}\n`;
+      plain += `CEFR Level: ${doc.cefrLevel} | Type: ${doc.assessmentType} ${doc.instrumentType} | Total: ${doc.totalPoints} pts (${doc.weighting})\n`;
+      plain += `Group: ${doc.targetAudience} | Est. Time: ${doc.estimatedTime} | Skills: ${doc.skills.join(", ")}\n\n`;
+      plain += `GENERAL OBJECTIVE\n${doc.generalObjective}\n\n`;
+      plain += `SPECIFIC OBJECTIVES\n${doc.specificObjectives.map(s => `• ${s}`).join("\n")}\n\n`;
+      plain += `CEFR CAN-DO STATEMENTS\n${doc.canDoStatements.map(s => `✓ ${s}`).join("\n")}\n\n`;
+      plain += `STUDENT INSTRUCTIONS\n${doc.studentInstructions.map((s, i) => `${i + 1}. ${s}`).join("\n")}\n\n`;
+      plain += `ASSESSMENT CRITERIA\n`;
+      doc.criteria.forEach(c => {
+        plain += `\n[${c.name} - ${c.weightPoints} pts | ${c.skillTag}]\n`;
+        if (doc.instrumentFormat === "checklist") {
+          plain += `  [ ] ${c.descriptors[0]}\n`;
+        } else {
+          (doc.rubricBands || []).forEach((b, i) => {
+            plain += `  - ${b}: ${c.descriptors[i] || ""}\n`;
+          });
+        }
+      });
+      plain += `\nSCORING GUIDANCE\n${doc.scoringGuidance}\n`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(plain).then(() => {
+          showToast("Copied to clipboard! Ready to paste into Google Docs.", "success");
+        }).catch(() => fallbackCopy(plain));
+      } else {
+        fallbackCopy(plain);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+        showToast("Copied to clipboard! Ready to paste into Google Docs.", "success");
+      } catch (e) {
+        showToast("Unable to copy automatically.", "error");
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function exportToWordDoc() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+      const contentHtml = document.getElementById("documentPreviewCard").innerHTML;
+      const fullHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>${escapeHtml(doc.title)}</title>
+        <style>
+          body { font-family: Arial, sans-serif; color: #1e293b; line-height: 1.45; }
+          table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+          th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; font-size: 11pt; }
+          th { background-color: #1e293b; color: #ffffff; }
+          h2 { color: #0f172a; }
+          h3, h4 { color: #312e81; margin-top: 14px; }
+        </style>
+        </head><body>${contentHtml}</body></html>
+      `;
+
+      const blob = new Blob(["\ufeff", fullHtml], { type: "application/msword" });
+      triggerDownload(blob, `${slugify(doc.title)}.doc`);
+      showToast("Downloaded .DOC file (compatible with Google Docs & Word)", "success");
+    }
+
+    function exportToCsvSheets() {
+      const doc = state.currentAssessment;
+      if (!doc) return;
+
+      const rows = [];
+      if (doc.instrumentFormat === "checklist") {
+        rows.push(["Criterion", "Skill", "Weight (pts)", "Observable Indicator", "Achieved (Y/N)", "Points Earned"]);
+        doc.criteria.forEach(c => {
+          rows.push([c.name, c.skillTag, c.weightPoints, c.descriptors[0] || "", "", ""]);
+        });
+      } else {
+        const bands = doc.rubricBands || ["Exemplary", "Proficient", "Developing", "Beginning"];
+        rows.push(["Criterion", "Skill", "Weight (pts)", ...bands, "Student Score"]);
+        doc.criteria.forEach(c => {
+          rows.push([c.name, c.skillTag, c.weightPoints, ...bands.map((_, i) => c.descriptors[i] || ""), ""]);
+        });
+      }
+
+      const csvContent = rows
+        .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+      const blob = new Blob(["\ufeff", csvContent], { type: "text/csv;charset=utf-8;" });
+      triggerDownload(blob, `${slugify(doc.title)}_rubric.csv`);
+      showToast("Downloaded .CSV file (import directly into Google Sheets)", "success");
+    }
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // =========================================================================
+    // LOCAL STORAGE SAVED LIBRARY
+    // =========================================================================
+    function loadSavedFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        state.savedAssessments = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        state.savedAssessments = [];
+      }
+      document.getElementById("savedCountBadge").textContent = state.savedAssessments.length;
+    }
+
+    function saveCurrentAssessment() {
+      if (!state.currentAssessment) return;
+      const entry = {
+        id: Date.now().toString(),
+        savedAt: new Date().toLocaleDateString(),
+        data: JSON.parse(JSON.stringify(state.currentAssessment))
+      };
+      state.savedAssessments.unshift(entry);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.savedAssessments));
+      } catch (e) {}
+      document.getElementById("savedCountBadge").textContent = state.savedAssessments.length;
+      showToast("Saved to your assessment library!", "success");
+    }
+
+    function openLibraryModal() {
+      const list = document.getElementById("libraryList");
+      if (!state.savedAssessments.length) {
+        list.innerHTML = `<div class="text-center py-8 text-sm text-slate-500">No saved assessments yet. Generate an instrument and click <strong>Save</strong> to store it here.</div>`;
+      } else {
+        list.innerHTML = state.savedAssessments.map(item => `
+          <div class="p-3.5 rounded-xl border border-slate-200 hover:border-brand-300 flex items-center justify-between gap-3 transition">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="px-2 py-0.5 text-[10px] font-bold bg-brand-100 text-brand-800 rounded-md">${escapeHtml(item.data.cefrLevel)}</span>
+                <span class="text-[11px] text-slate-400">${escapeHtml(item.savedAt)}</span>
+              </div>
+              <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(item.data.title)}</div>
+              <div class="text-xs text-slate-500">${escapeHtml(item.data.instrumentType)} • ${item.data.totalPoints} pts</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="loadSavedItem('${item.id}')" class="px-3 py-1.5 text-xs font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition cursor-pointer">Open</button>
+              <button type="button" onclick="deleteSavedItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `).join("");
+      }
+      document.getElementById("libraryModal").classList.remove("hidden");
+    }
+
+    function closeLibraryModal() {
+      document.getElementById("libraryModal").classList.add("hidden");
+    }
+
+    window.loadSavedItem = function(id) {
+      const found = state.savedAssessments.find(x => x.id === id);
+      if (found) {
+        state.currentAssessment = JSON.parse(JSON.stringify(found.data));
+        state.graderSelections = {};
+        state.viewMode = "document";
+        updateViewModeTabs();
+        renderAssessmentDocument();
+        setWorkspaceState("result");
+        closeLibraryModal();
+        showToast("Loaded saved assessment", "info");
+      }
+    };
+
+    window.deleteSavedItem = function(id) {
+      state.savedAssessments = state.savedAssessments.filter(x => x.id !== id);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.savedAssessments));
+      } catch (e) {}
+      document.getElementById("savedCountBadge").textContent = state.savedAssessments.length;
+      openLibraryModal();
+    };
+
+    // =========================================================================
+    // HELPERS & TOASTS
+    // =========================================================================
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function slugify(str) {
+      return String(str || "cefr_assessment")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "")
+        .slice(0, 48);
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const colors = {
+        success: "bg-emerald-600 text-white",
+        error: "bg-rose-600 text-white",
+        info: "bg-slate-800 text-white"
+      };
+      const toast = document.createElement("div");
+      toast.className = `pointer-events-auto px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium shadow-lg animate-fade-in ${colors[type] || colors.info}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transition = "opacity 0.25s ease";
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
